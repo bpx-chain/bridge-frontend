@@ -3,7 +3,8 @@ import {
     MDBInput,
     MDBCol,
     MDBRow,
-    MDBBtn
+    MDBBtn,
+    MDBIcon
 } from 'mdb-react-ui-kit';
 import Select from 'react-select';
 import { assets } from '../configs/Assets';
@@ -28,6 +29,8 @@ function TabBridge() {
     function handleChangeAsset(newValue) {
         setAsset(newValue);
         setAmount('');
+        setSrcChain(null);
+        setDstChain(null);
     };
     
     function handleChangeAmount(e) {
@@ -37,9 +40,46 @@ function TabBridge() {
         else
             setAmount(amount);
     };
+    
+    let chainOptions = [];
+    for(const [k, v] of Object.entries(chains))
+        if(k in assets[asset.value].contracts)
+            chainOptions.push({
+                value: k,
+                label: (
+                    <>
+                        <img src={v.icon} width="16" height="16" class="me-2" />
+                        {v.name}
+                    </>
+                )
+            });
+    
+    const [srcChain, setSrcChain] = useState(null);
+    const [dstChain, setDstChain] = useState(null);
+    
+    const srcChainOptions = chainOptions.filter(function(item) {
+        return !dstChain || item.value != dstChain.value;
+    });
+    
+    const dstChainOptions = chainOptions.filter(function(item) {
+        return !srcChain || item.value != srcChain.value;
+    });
+    
+    function handleChangeSrcChain(newValue) {
+        setSrcChain(newValue);
+    };
+    
+    function handleChangeDstChain(newValue) {
+        setDstChain(newValue);
+    };
+    
+    function handleSwapChains() {
+        setSrcChain(dstChain);
+        setDstChain(srcChain);
+    }
   
     return (
-        <form>
+        <>
             <MDBRow className="mb-2">
                 <MDBCol>
                     <h5>Transfer asset:</h5>
@@ -66,17 +106,22 @@ function TabBridge() {
             
             <MDBRow className="mb-4">
                 <MDBCol>
-                    <Select options={assetOptions} />
+                    <Select options={srcChainOptions} value={srcChain} onChange={handleChangeSrcChain} />
+                </MDBCol>
+                <MDBCol size='auto' className='px-0 my-auto'>
+                    <MDBBtn block color='secondary' onClick={handleSwapChains}>
+                        <MDBIcon icon='right-left' />
+                    </MDBBtn>
                 </MDBCol>
                 <MDBCol>
-                    <Select options={assetOptions} />
+                    <Select options={dstChainOptions} value={dstChain} onChange={handleChangeDstChain} />
                 </MDBCol>
             </MDBRow>
       
-            <MDBBtn type='submit' block>
+            <MDBBtn block>
                 Continue
             </MDBBtn>
-        </form>
+        </>
     );
 }
 

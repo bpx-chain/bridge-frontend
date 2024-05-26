@@ -21,23 +21,34 @@ import { chains } from '../configs/Chains';
 import { abiBridge } from '../configs/AbiBridge';
 
 function TabBridge() {
+  const homeChainId = 279;
+  
   const [asset, setAsset] = useState(Object.keys(assets)[0]);
   const [amount, setAmount] = useState('');
   const [srcChain, setSrcChain] = useState(null);
   const [dstChain, setDstChain] = useState(null);
-  
-  let srcChainOptions = Object.assign({}, chains);
-  if(dstChain)
-    delete srcChainOptions[dstChain];
-  let dstChainOptions = Object.assign({}, chains);
-  if(srcChain)
-    delete dstChainOptions[srcChain];
     
   function handleChangeAsset(newValue) {
     setAsset(newValue);
     setAmount('');
     setSrcChain(null);
     setDstChain(null);
+  };
+  
+  function handleChangeSrcChain(newValue) {
+    setSrcChain(newValue);
+    if(newValue != homeChainId)
+      setDstChain(homeChainId);
+    else if(dstChain == homeChainId)
+      setDstChain(null);
+  };
+  
+  function handleChangeDstChain(newValue) {
+    setDstChain(newValue);
+    if(newValue != homeChainId)
+      setSrcChain(homeChainId);
+    else if(srcChain == homeChainId)
+      setSrcChain(null);
   };
     
   function handleSwapChains() {
@@ -246,7 +257,7 @@ function TabBridge() {
 
       <MDBRow className="mb-4">
         <MDBCol>
-          <SelectChain options={srcChainOptions} value={srcChain} onChange={setSrcChain} disabled={formLocked} /> 
+          <SelectChain options={chains} value={srcChain} onChange={handleChangeSrcChain} disabled={formLocked} /> 
         </MDBCol>
         <MDBCol size='auto' className='px-0 my-auto'>
           <MDBBtn block color='secondary' onClick={handleSwapChains} disabled={formLocked} >
@@ -254,7 +265,7 @@ function TabBridge() {
           </MDBBtn>
         </MDBCol>
         <MDBCol>
-          <SelectChain options={dstChainOptions} value={dstChain} onChange={setDstChain} disabled={formLocked} />
+          <SelectChain options={chains} value={dstChain} onChange={handleChangeDstChain} disabled={formLocked} />
         </MDBCol>
       </MDBRow>
       

@@ -8,6 +8,8 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "@waku/react": "^0.0.5-8c435e4",
+    "@waku/sdk": "^0.0.24",
     "@web3modal/wagmi": "^4.2.2",
     "bignumber.js": "^9.1.2",
     "mdb-react-ui-kit": "^8.0.0",

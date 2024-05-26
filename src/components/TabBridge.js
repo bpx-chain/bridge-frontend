@@ -15,6 +15,7 @@ import BigNumber from "bignumber.js";
 import SelectAsset from './SelectAsset';
 import InputAmount from './InputAmount';
 import SelectChain from './SelectChain';
+import SignaturesWatcher from './SignaturesWatcher';
 import { assets } from '../configs/Assets';
 import { chains } from '../configs/Chains';
 import { abiBridge } from '../configs/AbiBridge';
@@ -258,10 +259,9 @@ function TabBridge() {
       </MDBRow>
       
       {isWaitingForSignatures && (
-        <MDBRow className="mb-4">
-          <MDBCol>
-          </MDBCol>
-        </MDBRow>
+        <div className='mb-4'>
+          <SignaturesWatcher />
+        </div>
       )}
 
       <MDBBtn block disabled={submitLocked} onClick={submitOnClick}>

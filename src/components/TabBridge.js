@@ -9,6 +9,7 @@ import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useAccount, useChainId, useSwitchChain } from 'wagmi';
 import { useReadContract } from 'wagmi';
 import { useWriteContract } from 'wagmi';
+import { useWaitForTransactionReceipt } from 'wagmi';
 import { erc20Abi } from 'viem';
 import BigNumber from "bignumber.js";
 
@@ -74,15 +75,23 @@ function TabBridge() {
     ]
   });
   const {
+    data: approveTxid,
     status: approveStatus,
     reset: approveReset,
     writeContract: approveWriteContract
   } = useWriteContract();
   const {
+    status: approveTxStatus
+  } = useWaitForTransactionReceipt({ hash: approveTxid });
+  const {
+    data: transferTxid,
     status: transferStatus,
     reset: transferReset,
     writeContract: transferWriteContract
   } = useWriteContract();
+  const {
+    status: transferTxStatus
+  } = useWaitForTransactionReceipt({ hash: transferTxid });
   
   const bnAmount = new BigNumber(amount).shiftedBy(assets[asset].decimals);
   const bnAllowance = new BigNumber(allowance);
@@ -182,13 +191,21 @@ function TabBridge() {
   else if(isWaitingForSignatures) {
     //
   }
-  else if(assets[asset].contracts[srcChain] && approveStatus == 'error') {
+  else if(approveTxStatus == 'error') {
+    submitText = 'Approve transaction reverted. Retry?';
+    formLocked = false;
+    submitLocked = false;
+    submitOnClick = function() { approveReset(); approveSrcToken() };
+  }
+  else if(approveTxStatus == 'pending') {
+  }
+  else if(approveStatus == 'error') {
     submitText = 'Approve failed. Retry?';
     formLocked = false;
     submitLocked = false;
     submitOnClick = function() { approveReset(); approveSrcToken() };
   }
-  else if(assets[asset].contracts[srcChain] && approveStatus == 'pending') {
+  else if(approveStatus == 'pending') {
     submitText = (
       <>
         <MDBIcon icon='circle-notch' spin className='me-2' />

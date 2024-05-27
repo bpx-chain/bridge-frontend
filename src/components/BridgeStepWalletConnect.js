@@ -35,7 +35,7 @@ function BridgeStepWalletConnect(props) {
     );
   else if(status == 'disconnected')
     return (
-      <MDBBtn block>
+      <MDBBtn block onClick={open}>
         Connect wallet
       </MDBBtn>
     );

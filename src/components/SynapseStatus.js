@@ -8,15 +8,14 @@ import { useState, useEffect } from 'react';
 import { ReactComponent as SynapseIcon } from '../assets/synapse.svg';
 function SynapseStatus() {
   const { node, error, isLoading } = useWaku();
-  const { peersCount, setPeersCount } = useState(0);
+  const [ peersCount, setPeersCount ] = useState(0);
   
   useEffect(function() {
     if(!node)
       return;
     
-    const interval = setInterval(async function() {
-      console.log(await node.connectionManager.getPeersByDiscovery());
-      setPeersCount(node.relay.gossipSub.getPeers().length);
+    const interval = setInterval(function() {
+      setPeersCount(node.libp2p.getPeers().length);
     }, 1000);
     
     return function() { clearInterval(interval); };

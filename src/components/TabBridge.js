@@ -51,6 +51,11 @@ function TabBridge() {
     setDstChain(srcChain);
   };
   
+  let chainsOfAsset = Object.assign({}, chains);
+  for(const ch in chainsOfAsset)
+    if(!(ch in assets[asset].contracts))
+      delete chainsOfAsset[ch];
+  
   const formLocked = false;
 
   return (
@@ -81,7 +86,7 @@ function TabBridge() {
 
       <MDBRow className="mb-4">
         <MDBCol>
-          <SelectChain options={chains} value={srcChain} onChange={handleChangeSrcChain} disabled={formLocked} /> 
+          <SelectChain options={chainsOfAsset} value={srcChain} onChange={handleChangeSrcChain} disabled={formLocked} /> 
         </MDBCol>
         <MDBCol size='auto' className='px-0 my-auto'>
           <MDBBtn block color='secondary' onClick={handleSwapChains} disabled={formLocked} >
@@ -89,7 +94,7 @@ function TabBridge() {
           </MDBBtn>
         </MDBCol>
         <MDBCol>
-          <SelectChain options={chains} value={dstChain} onChange={handleChangeDstChain} disabled={formLocked} />
+          <SelectChain options={chainsOfAsset} value={dstChain} onChange={handleChangeDstChain} disabled={formLocked} />
         </MDBCol>
       </MDBRow>
       

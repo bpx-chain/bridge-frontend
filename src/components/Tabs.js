@@ -11,6 +11,9 @@ import {
   MDBRow,
   MDBCol
 } from 'mdb-react-ui-kit';
+import { useAccount } from 'wagmi';
+
+import { chains } from '../configs/Chains';
 
 import TabBridge from './TabBridge';
 import TabRetry from './TabRetry';
@@ -27,6 +30,9 @@ function Tabs() {
 
     setIconsActive(value);
   };
+  
+  const { status: walletStatus, chainId } = useAccount();
+  const className = (walletStatus != 'connected' || !(chainId in chains)) ? 'disabled' : '';
 
   return (
     <div style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -41,12 +47,12 @@ function Tabs() {
               </MDBTabsLink>
             </MDBTabsItem>
             <MDBTabsItem>
-              <MDBTabsLink onClick={() => handleIconsClick('tab2')} active={iconsActive === 'tab2'}>
+              <MDBTabsLink className={className}  onClick={() => handleIconsClick('tab2')} active={iconsActive === 'tab2'}>
                 <MDBIcon fas icon='clock-rotate-left' className='me-2' /> Retry
               </MDBTabsLink>
             </MDBTabsItem>
             <MDBTabsItem className='ms-auto'>
-              <MDBTabsLink onClick={() => handleIconsClick('tab3')} active={iconsActive === 'tab3'}>
+              <MDBTabsLink className={className} onClick={() => handleIconsClick('tab3')} active={iconsActive === 'tab3'}>
                 <MDBIcon fas icon='user-lock' className='me-2' /> Relayer
               </MDBTabsLink>
             </MDBTabsItem>

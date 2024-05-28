@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   MDBContainer,
   MDBCard,
@@ -21,18 +21,22 @@ import TabRelayer from './TabRelayer';
 import background from '../assets/background.jpg';
 
 function Tabs() {
-  const [iconsActive, setIconsActive] = useState('tab1');
-
-  const handleIconsClick = (value: string) => {
-    if (value === iconsActive) {
-      return;
-    }
-
-    setIconsActive(value);
-  };
+  const [tab, setTab] = useState('bridge');
   
   const { status: walletStatus, chainId } = useAccount();
-  const className = (walletStatus != 'connected' || !(chainId in chains)) ? 'disabled' : '';
+  const connectionGood = (walletStatus != 'connected' || !(chainId in chains));
+  
+  useEffect(function() {
+    if(tab != 'bridge')
+      setTab('bridge');
+  }, [connectionGood]);
+
+  function handleChangeTab(newTab) {
+    if(newTab != tab)
+      setTab(newTab);
+  };
+  
+  const className = connectionGood ? '' : 'disabled';
 
   return (
     <div style={{ backgroundImage: `url(${background})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
@@ -42,32 +46,36 @@ function Tabs() {
         <MDBCard border className='my-3'>
           <MDBTabs className='mb-3'>
             <MDBTabsItem>
-              <MDBTabsLink onClick={() => handleIconsClick('tab1')} active={iconsActive === 'tab1'}>
+              <MDBTabsLink onClick={() => handleChangeTab('bridge')} active={tab === 'bridge'}>
                 <MDBIcon fas icon='bridge-water' className='me-2' /> Bridge
               </MDBTabsLink>
             </MDBTabsItem>
             <MDBTabsItem>
-              <MDBTabsLink className={className}  onClick={() => handleIconsClick('tab2')} active={iconsActive === 'tab2'}>
+              <MDBTabsLink className={className}  onClick={() => handleChangeTab('retry')} active={tab === 'retry'}>
                 <MDBIcon fas icon='clock-rotate-left' className='me-2' /> Retry
               </MDBTabsLink>
             </MDBTabsItem>
             <MDBTabsItem className='ms-auto'>
-              <MDBTabsLink className={className} onClick={() => handleIconsClick('tab3')} active={iconsActive === 'tab3'}>
+              <MDBTabsLink className={className} onClick={() => handleChangeTab('relayer')} active={tab === 'relayer'}>
                 <MDBIcon fas icon='user-lock' className='me-2' /> Relayer
               </MDBTabsLink>
             </MDBTabsItem>
           </MDBTabs>
     
           <MDBTabsContent className='p-3'>
-            <MDBTabsPane open={iconsActive === 'tab1'}>
+            <MDBTabsPane open={tab === 'bridge'}>
               <TabBridge />
             </MDBTabsPane>
-            <MDBTabsPane open={iconsActive === 'tab2'}>
-              <TabRetry />
-            </MDBTabsPane>
-            <MDBTabsPane open={iconsActive === 'tab3'}>
-              <TabRelayer />
-            </MDBTabsPane>
+            {connectionGood && (
+              <>
+                <MDBTabsPane open={tab === 'retry'}>
+                  <TabRetry />
+                </MDBTabsPane>
+                <MDBTabsPane open={tab === 'relayer'}>
+                  <TabRelayer />
+                </MDBTabsPane>
+              </>
+            )}
           </MDBTabsContent>
         </MDBCard>
           </MDBCol>

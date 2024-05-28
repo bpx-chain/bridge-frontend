@@ -2,7 +2,7 @@ import {
   MDBIcon,
   MDBTooltip
 } from 'mdb-react-ui-kit';
-import { useWaku } from "@waku/react";
+import { useWaku } from "@bpx-chain/synapse-react";
 import { useState, useEffect } from 'react';
 
 import { ReactComponent as SynapseIcon } from '../assets/synapse.svg';

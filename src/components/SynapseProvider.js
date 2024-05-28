@@ -1,5 +1,6 @@
-import { LightNodeProvider } from "@waku/react";
-import { singleShardInfosToShardInfo, singleShardInfoToPubsubTopic } from '@waku/utils';
+import { LightNodeProvider } from "@bpx-chain/synapse-react";
+import { singleShardInfosToShardInfo, singleShardInfoToPubsubTopic } from '@bpx-chain/synapse-utils';
+import { Protocols } from "@bpx-chain/synapse-sdk";
 
 const singleShardInfo = {
     clusterId: 279,
@@ -18,11 +19,11 @@ const options = {
 
 function SynapseProvider(props) {
   return (
-    <LightNodeProvider options={options}>
+    <LightNodeProvider options={options} protocols={[Protocols.Store, Protocols.Filter, Protocols.LightPush]}>
       {props.children}
     </LightNodeProvider>
   );
 }
 
 export default SynapseProvider;
-export { singleShardInfo, pubSubTopic };
+export { shardInfo, pubSubTopic };

@@ -9,8 +9,8 @@ import {
 import { useBlock, useReadContract } from 'wagmi';
 import { keccak256 } from 'viem';
 import BigNumber from 'bignumber.js';
-import { useWaku, useFilterMessages, useStoreMessages } from "@waku/react";
-import { Decoder } from "@waku/sdk";
+import { useWaku, useFilterMessages, useStoreMessages } from "@bpx-chain/synapse-react";
+import { Decoder } from "@bpx-chain/synapse-sdk";
 
 import { pubSubTopic } from './SynapseProvider';
 import { chains } from '../configs/Chains';
@@ -45,24 +45,34 @@ function BridgeStepSignatures(props) {
     ]
   });
   
+  const [ cursor, setCursor ] = useState(null);
   const [ signatures, setSignatures ] = useState([]);
   
   const contentTopic = '/bridge/1/client-' + props.address.toLowerCase() + '/json';
   const decoder = new Decoder(pubSubTopic, contentTopic);
   
-  const { synapse } = useWaku();
-  const { messages: storeMessages, error: errorx } = useStoreMessages({ synapse, decoder });
-  const { messages: filterMessages, error: errory } = useFilterMessages({ synapse, decoder });
-  console.log(errorx);
-  console.log(errory);
+  const { node } = useWaku();
+  const { messages: storeMessages, error: storeError } = useStoreMessages({
+    node,
+    decoder,
+    options: {
+      cursor,
+      pageDirection: "forward"
+    }
+  });
+  const { messages: filterMessages, error: filterError } = useFilterMessages({ node, decoder });
+  console.log(storeMessages);
+  console.log(filterMessages);
   
   useEffect(function() {
+    if(storeMessages.length)
+      setCursor(storeMessages[storeMessages.length-1]);
+    
     const allMessages = storeMessages.concat(filterMessages);
-    console.log(allMessages);
     /*setMessages(allMessages.map((wakuMessage) => {
       if (!wakuMessage.payload) return;
       return ChatMessage.decode(wakuMessage.payload);
-    }));*/
+    })*/
   }, [filterMessages, storeMessages]);
   
   return (

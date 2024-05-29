@@ -24,7 +24,7 @@ function Tabs() {
   const [tab, setTab] = useState('bridge');
   
   const { status: walletStatus, chainId } = useAccount();
-  const connectionGood = (walletStatus != 'connected' || !(chainId in chains));
+  const connectionGood = (walletStatus == 'connected' && chainId in chains);
   
   useEffect(function() {
     if(tab != 'bridge')

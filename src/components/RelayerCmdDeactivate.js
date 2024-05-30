@@ -5,32 +5,16 @@ import {
   MDBBtn,
   MDBIcon
 } from 'mdb-react-ui-kit';
-import { useAccount, useReadContract, useWriteContract } from 'wagmi';
-import BigNumber from 'bignumber.js';
+import { useAccount, useWriteContract } from 'wagmi';
 
 import { chains } from '../configs/Chains';
 import { abiBridge } from '../configs/AbiBridge';
 
 import MsgBox from './MsgBox';
 
-function RelayerCmdActivate(props) {
+function RelayerCmdDeactivate(props) {
   const { address, chainId } = useAccount();
   const { oppChain } = props;
-  
-  const {
-    data: relayerGetStakeData,
-    status: relayerGetStakeStatus
-  } = useReadContract({
-    abi: abiBridge,
-    address: chains[chainId].contract,
-    functionName: 'relayerGetStake',
-    args: [
-      address
-    ]
-  });
-  const relayerStake = relayerGetStakeStatus == 'success'
-    ? new BigNumber(relayerGetStakeData).shiftedBy(-18).toString()
-    : null;
   
   const {
     writeContract,
@@ -42,15 +26,15 @@ function RelayerCmdActivate(props) {
     writeContract({
       address: chains[chainId].contract,
       abi: abiBridge,
-      functionName: 'relayerActivate',
+      functionName: 'relayerDeactivate',
       args: [
         oppChain
       ],
-      value: relayerGetStakeData
+      value: props.amountWei
     });
   };
   
-  return relayerGetStakeStatus == 'success' && (
+  return (
     <>
       <MsgBox open={!!writeContractError} title='Error'>
         {writeContractError && writeContractError.shortMessage}
@@ -58,7 +42,7 @@ function RelayerCmdActivate(props) {
       <MDBCard border className='p-3'>
         <MDBRow>
           <MDBCol>
-            <small><strong><u>Activate a relayer</u></strong></small>
+            <small><strong><u>Deactivate a relayer</u></strong></small>
           </MDBCol>
         </MDBRow>
         <MDBRow>
@@ -66,12 +50,11 @@ function RelayerCmdActivate(props) {
             <small>
               <ul>
                 <li>
-                  This command activates your wallet address as a relayer for transactions coming
+                  This command deactivates your wallet address as a relayer for transactions coming
                   from <strong>{chains[oppChain].name}</strong> to <strong>{chains[chainId].name}</strong>.
                 </li>
                 <li>
-                  Relayer stake of <strong>{relayerStake} {chains[chainId].currency}</strong> will be deposited
-                  with the activation transaction.
+                  You will be able to withdraw your relayer stake after <strong>2 epochs</strong> (40 minutes).
                 </li>
               </ul>
             </small>
@@ -89,4 +72,4 @@ function RelayerCmdActivate(props) {
   );
 }
 
-export default RelayerCmdActivate;
+export default RelayerCmdDeactivate;

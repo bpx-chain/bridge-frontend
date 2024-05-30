@@ -5,12 +5,20 @@ import {
   MDBIcon
 } from 'mdb-react-ui-kit';
 import { useAccount } from 'wagmi';
+import BigNumber from 'bignumber.js';
 
 import { chains } from '../configs/Chains';
 
 function RelayerStatus(props) {
   const { address, chainId } = useAccount();
-  const { relayerStatus, relayerGetStatusStatus } = props;
+  const {
+    relayerStatus,
+    relayerGetStatusStatus,
+    balance,
+    relayerGetBalanceStatus,
+    withdrawalMax,
+    relayerGetWithdrawalMaxStatus
+  } = props;
   
   const icon = relayerGetStatusStatus == 'success' ? 'circle' : 'circleNotch';
   const color = relayerGetStatusStatus == 'success'
@@ -27,6 +35,12 @@ function RelayerStatus(props) {
   const statusEpochText = relayerGetStatusStatus == 'success'
     ? relayerStatus[0] ? 'Activation' : 'Deactivation'
     : 'Status';
+  const balanceText = relayerGetBalanceStatus == 'success'
+    ? new BigNumber(balance).shiftedBy(-18).toString()
+    : <MDBIcon icon='circle-notch' spin />;
+  const withdrawalMaxText = relayerGetWithdrawalMaxStatus == 'success'
+    ? new BigNumber(withdrawalMax).shiftedBy(-18).toString()
+    : <MDBIcon icon='circle-notch' spin />;
   
   return (
     <MDBCard border className='p-2 mt-4' style={{ backgroundColor: '#ececec' }}>
@@ -37,15 +51,8 @@ function RelayerStatus(props) {
         <MDBCol>
           <small>
             <MDBRow>
-              <MDBCol size='6'>
-                <strong>Destination chain:</strong>
-                <br />
-                <img src={chains[chainId].icon} width="16" height="16" className="me-1" />
-                {chains[chainId].name}
-              </MDBCol>
-              <MDBCol size='6'>
-                <strong>Wallet:</strong>
-                <br />
+              <MDBCol>
+                <strong>Address: </strong>
                 {address}
               </MDBCol>
             </MDBRow>
@@ -59,6 +66,18 @@ function RelayerStatus(props) {
                 <strong>{statusEpochText} epoch:</strong>
                 <br />
                 {statusEpoch}
+              </MDBCol>
+            </MDBRow>
+            <MDBRow className='mt-2'>
+              <MDBCol size='6'>
+                <strong>Balance:</strong>
+                <br />
+                {balanceText} {chains[chainId].currency}
+              </MDBCol>
+              <MDBCol size='6'>
+                <strong>Available to withdraw:</strong>
+                <br />
+                {withdrawalMaxText} {chains[chainId].currency}
               </MDBCol>
             </MDBRow>
           </small>

@@ -90,7 +90,7 @@ function TabRelayer() {
   return (
     <>
       <MDBRow className='mb-2'>
-        <MDBCol>
+        <MDBCol className='my-auto'>
           Query / transact on chain:
         </MDBCol>
         <MDBCol>
@@ -98,8 +98,8 @@ function TabRelayer() {
         </MDBCol>
       </MDBRow>
       <MDBRow>
-        <MDBCol>
-          For opposite chain:
+        <MDBCol className='my-auto'>
+          Opposite chain:
         </MDBCol>
         <MDBCol>
           <SelectChain options={oppChains} value={oppChain} onChange={setOppChain} />

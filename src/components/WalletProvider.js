@@ -48,3 +48,4 @@ function WalletProvider(props) {
 }
 
 export default WalletProvider;
+export { config };

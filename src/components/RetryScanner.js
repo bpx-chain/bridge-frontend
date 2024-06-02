@@ -16,13 +16,22 @@ import {
 import { getClient } from '@wagmi/core';
 import { getLogs } from 'viem/actions';
 import { useBlockNumber, useAccount } from 'wagmi';
-import { parseAbiItem } from 'viem';
+import {
+  parseAbiItem,
+  keccak256,
+  decodeAbiParameters,
+  zeroAddress
+} from 'viem';
+import BigNumber from 'bignumber.js';
 
 import { chains } from '../configs/Chains';
+import { assets } from '../configs/Assets';
 
 import { config } from './WalletProvider';
 
 function RetryScanner() {
+  const homeChainId = 279;
+  
   const [progress, setProgress] = useState(0);
   const [allLogs, setAllLogs] = useState([]);
   
@@ -70,7 +79,44 @@ function RetryScanner() {
     fetcher();
   }, [latestBlock]);
   
-  console.log(allLogs);
+  function decodeMessage(message) {
+    const decodedMessage = decodeAbiParameters(
+      [
+        { name: 'srcChainId', type: 'uint256' },
+        { name: 'dstChainId', type: 'uint256' },
+        { name: 'nonce', type: 'bytes32' },
+        { name: 'messageType', type: 'uint256' },
+        { name: 'srcDstContract', type: 'address' },
+        { name: 'dstAddress', type: 'address' },
+        { name: 'value', 'type': 'uint256' }
+      ],
+      message
+    );
+    
+    let asset;
+    const assetContract = decodedMessage[4] == zeroAddress ? null : decodedMessage[4];
+    const assetChain = parseInt(decodedMessage[0] == homeChainId ? decodedMessage[1] : decodedMessage[0]);
+    for(const [k, v] of Object.entries(assets)) {
+      if(v.contracts[assetChain] === assetContract) {
+        asset = k;
+        break;
+      }
+    }
+    
+    return {
+      srcChainId: decodedMessage[0],
+      dstChainId: decodedMessage[1],
+      asset: asset,
+      dstAddress: decodedMessage[5],
+      value: decodedMessage[6]
+    };
+  };
+  
+  const [retryMh, setRetryMh] = useState(null);
+  
+  function retryBridge(messageHash) {
+    setRetryMh(messageHash);
+  };
   
   return (
     <>
@@ -98,25 +144,54 @@ function RetryScanner() {
         </MDBCard>
       ) : (
         <MDBListGroup style={{ maxHeight: '400px', overflowY: 'scroll' }}>
-          {allLogs.map((log) => (
-            <MDBListGroupItem className='d-flex justify-content-between align-items-center'>
-              <div className='d-flex align-items-center'>
-                <img
-                  src='https://mdbootstrap.com/img/new/avatars/8.jpg'
-                  alt=''
-                  style={{ width: '45px', height: '45px' }}
-                  className='rounded-circle'
-                />
-                <div className='ms-3'>
-                  <p className='fw-bold mb-1'>John Doe</p>
-                  <p className='text-muted mb-0'>john.doe@gmail.com</p>
+          {allLogs.map(function(log) {
+            const msg = decodeMessage(log.args.message);
+            const value = new BigNumber(msg.value).shiftedBy(-assets[msg.asset].decimals).toFormat(
+              null,
+              null,
+              {
+                prefix: '',
+                decimalSeparator: '.',
+                groupSeparator: ',',
+                groupSize: 3,
+                secondaryGroupSize: 0,
+                fractionGroupSeparator: '',
+                fractionGroupSize: 0,
+                suffix: ''
+              }
+            );
+            const messageHash = keccak256(log.args.message);
+            
+            return (
+              <MDBListGroupItem className='d-flex justify-content-between align-items-center'>
+                <div className='d-flex align-items-center'>
+                  <img
+                    src={assets[msg.asset].icon}
+                    style={{ width: '45px', height: '45px' }}
+                  />
+                  <div className='ms-3' style={{ fontSize: '12px' }}>
+                    <p className='fw-bold mb-1'>Transfer {value} {msg.asset}</p>
+                    <p className='text-muted mb-0'>
+                      {chains[chainId].name}
+                      <MDBIcon icon='arrow-right' className='mx-2' />
+                      {chains[log.args.chainId].name}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <MDBBtn size='sm' rounded color='link'>
-                View
-              </MDBBtn>
-            </MDBListGroupItem>
-          ))}
+                <MDBBtn
+                 size='sm'
+                 rounded
+                 color='link'
+                 onClick={() => { retryBridge(messageHash)} }
+                 disabled={retryMh !== null}
+                >
+                  {retryMh == messageHash ? (
+                    <MDBIcon icon='circle-notch' spin />
+                  ) : 'Retry'}
+                </MDBBtn>
+              </MDBListGroupItem>
+            );
+        })}
         </MDBListGroup>
       )}
     </>

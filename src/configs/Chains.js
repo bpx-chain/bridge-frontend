@@ -17,7 +17,7 @@ export const chains = {
         },
         contract: '0x53fa3006A40AA0Cb697736819485cE6D30DEAEb5',
         currency: 'BPX',
-        retryBlocks: 15000
+        retryBlocks: 70000//15000
     },
     '42161': {
         name: 'Arbitrum',

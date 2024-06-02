@@ -23,6 +23,8 @@ import {
   zeroAddress
 } from 'viem';
 import BigNumber from 'bignumber.js';
+import { useWaku } from "@bpx-chain/synapse-react";
+import { createEncoder, utf8ToBytes } from "@bpx-chain/synapse-sdk";
 
 import { chains } from '../configs/Chains';
 import { assets } from '../configs/Assets';
@@ -112,10 +114,41 @@ function RetryScanner() {
     };
   };
   
-  const [retryMh, setRetryMh] = useState(null);
+  const {
+    node: synapse,
+    error: synapseError,
+    isLoading: synapseIsLoading
+  } = useWaku();
+  const [retryMsg, setRetryMsg] = useState(null);
+  const [retryProgress, setRetryProgress] = useState(0);
   
-  function retryBridge(messageHash) {
-    setRetryMh(messageHash);
+  async function retryBridge(log) {
+    setRetryProgress(0);
+    setRetryMsg(log.args.message);
+    
+    const decodedMessage = decodeMessage(log.args.message);
+    const messageHash = keccak256(log.args.message);
+    
+    return;
+    
+    try {
+      const contentTopic = '/bridge/1/retry-' + decodedMessage.srcChainId + '-' +
+        decodedMessage.dstChainId + '-' + address.toLowerCase() + '/json';
+      const encoder = createEncoder({ contentTopic });
+      
+      const request = {
+        from: address,
+        message: log.args.message,
+        txid: log.transactionHash
+      };
+      
+      await synapse.lightPush.send(encoder, {
+        payload: utf8ToBytes(JSON.stringify(request))
+      });
+    }
+    catch(e) {
+      console.log(e);
+    }
   };
   
   return (
@@ -160,7 +193,6 @@ function RetryScanner() {
                 suffix: ''
               }
             );
-            const messageHash = keccak256(log.args.message);
             
             return (
               <MDBListGroupItem className='d-flex justify-content-between align-items-center'>
@@ -182,11 +214,14 @@ function RetryScanner() {
                  size='sm'
                  rounded
                  color='link'
-                 onClick={() => { retryBridge(messageHash)} }
-                 disabled={retryMh !== null}
+                 onClick={() => { retryBridge(log)} }
+                 disabled={retryMsg !== null || synapseError || synapseIsLoading}
                 >
-                  {retryMh == messageHash ? (
-                    <MDBIcon icon='circle-notch' spin />
+                  {retryMsg == log.args.message ? (
+                    <>
+                      <MDBIcon icon='circle-notch' spin className='me-1' />
+                      {retryProgress}/8
+                    </>
                   ) : 'Retry'}
                 </MDBBtn>
               </MDBListGroupItem>

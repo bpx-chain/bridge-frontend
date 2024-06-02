@@ -6,79 +6,145 @@ import {
   MDBIcon,
   MDBCard
 } from 'mdb-react-ui-kit';
-import { useBlock, useReadContract } from 'wagmi';
+import {
+  useAccount,
+  useBlock
+} from 'wagmi';
+import {
+  getClient,
+  readContract
+} from '@wagmi/core';
 import { keccak256 } from 'viem';
 import BigNumber from 'bignumber.js';
-import { useWaku, useFilterMessages, useStoreMessages } from "@bpx-chain/synapse-react";
-import { Decoder } from "@bpx-chain/synapse-sdk";
+import {
+  useWaku,
+  useFilterMessages,
+  useStoreMessages
+} from "@bpx-chain/synapse-react";
+import { createDecoder } from "@bpx-chain/synapse-sdk";
 
 import { pubSubTopic } from './SynapseProvider';
 import { chains } from '../configs/Chains';
 import { abiBridge } from '../configs/AbiBridge';
+import { config } from './WalletProvider';
 
 function BridgeStepSignatures(props) {
   const {
-    data: latestBlock,
-    status: latestBlockStatus
+    srcChain,
+    message
+  } = props;
+  
+  const {
+    address,
+    chainId
+  } = useAccount();
+  const {
+    data: latestBlock
   } = useBlock({
     blockTag: 'latest',
     watch: true
   });
+  const publicClient = getClient(config);
   
-  const messageHash = keccak256(props.message);
-  const epoch = (latestBlockStatus == 'success')
-    ? new BigNumber(latestBlock.timestamp).div(60).div(20).dp(0, BigNumber.ROUND_DOWN)
-    : null;
+  const [epoch, setEpoch] = useState(null);
   
-  const {
-    data: relayers,
-    status: getRelayersStatus,
-    error: error
-  } = useReadContract({
-    abi: abiBridge,
-    address: chains[props.dstChain].contract,
-    functionName: 'messageGetRelayers',
-    args: [
-      props.srcChain,
-      messageHash,
-      epoch
-    ]
-  });
+  useEffect(function() {
+    if(!latestBlock)
+      return;
+    
+    const newEpoch = new BigNumber(latestBlock.timestamp).div(60).div(20).dp(0, BigNumber.ROUND_DOWN);
+    
+    if(epoch != newEpoch)
+      setEpoch(newEpoch);
+  }, [latestBlock]);
+
+  const messageHash = keccak256(message);
+  const [relayers, setRelayers] = useState([]);
+  const [signatures, setSignatures] = useState([]);
   
+  useEffect(function() {
+    if(!epoch)
+      return;
+    
+    async function getRelayersOnEpochChange() {
+      try {
+        setRelayers(
+          await readContract(config, {
+            abi: abiBridge,
+            address: chains[chainId].contract,
+            functionName: 'messageGetRelayers',
+            args: [
+              srcChain,
+              messageHash,
+              epoch
+            ]
+          })
+        );
+      }
+      catch(e) {
+        setTimeout(getRelayersOnEpochChange, 3000);
+        setRelayers([]);
+      }
+      setSignatures([null, null, null, null, null, null, null, null]);
+    };
+    
+    getRelayersOnEpochChange();
+  }, [epoch]);
+  
+  const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
+  const decoder = createDecoder(contentTopic, pubSubTopic);
+  const { node: synapse } = useWaku();
   const [ cursor, setCursor ] = useState(null);
-  const [ signatures, setSignatures ] = useState([]);
-  
-  const contentTopic = '/bridge/1/client-' + props.address.toLowerCase() + '/json';
-  const decoder = new Decoder(pubSubTopic, contentTopic);
-  
-  const { node } = useWaku();
-  const { messages: storeMessages, error: storeError } = useStoreMessages({
-    node,
+  const { messages: storeMessages } = useStoreMessages({
+    node: synapse,
     decoder,
     options: {
       cursor,
       pageDirection: "forward"
     }
   });
-  const { messages: filterMessages, error: filterError } = useFilterMessages({ node, decoder });
-  console.log(storeMessages);
-  console.log(filterMessages);
+  const { messages: filterMessages } = useFilterMessages({ node: synapse, decoder });
   
   useEffect(function() {
     if(storeMessages.length)
       setCursor(storeMessages[storeMessages.length-1]);
     
-    const allMessages = storeMessages.concat(filterMessages);
-    /*setMessages(allMessages.map((wakuMessage) => {
-      if (!wakuMessage.payload) return;
-      return ChatMessage.decode(wakuMessage.payload);
-    })*/
+    let tmpMessages = [];
+    for(const rawMsg of storeMessages.concat(filterMessages)) {
+      if(!rawMsg.payload)
+        continue;
+    
+      let msg;
+      try {
+        msg = JSON.parse(new TextDecoder().decode(rawMsg.payload));
+      } catch(e) {
+        continue;
+      }
+    
+      if(typeof msg.messageHash != 'string' || msg.messageHash != messageHash)
+        continue;
+      
+      if(typeof msg.epoch != 'number' || !Number.isInteger(msg.epoch) || msg.epoch < 1)
+        continue;
+      
+      if(typeof msg.v != 'number' || !Number.isInteger(msg.v) || msg.v < 0)
+        continue;
+      
+      if(typeof msg.r != 'string' || !msg.r.match(/^0x[0-9a-f]{64}$/))
+        continue;
+      
+      if(typeof msg.s != 'string' || !msg.s.match(/^0x[0-9a-f]{64}$/))
+        continue;
+        
+      tmpMessages.push(msg);
+      console.log(tmpMessages);
+    }
   }, [filterMessages, storeMessages]);
   
   return (
     <>
       <MDBCard border className='p-2 mb-4' style={{ backgroundColor: '#ececec' }}>
-        {(latestBlockStatus == 'success' && getRelayersStatus == 'success') ? (
+        {(relayers.length == 8) ? (
           <>
             <MDBRow>
               <MDBCol>

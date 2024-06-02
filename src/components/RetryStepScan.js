@@ -28,10 +28,9 @@ import { createEncoder, utf8ToBytes } from "@bpx-chain/synapse-sdk";
 
 import { chains } from '../configs/Chains';
 import { assets } from '../configs/Assets';
-
 import { config } from './WalletProvider';
 
-function RetryScanner() {
+function RetryStepScan() {
   const homeChainId = 279;
   
   const [progress, setProgress] = useState(0);
@@ -233,4 +232,4 @@ function RetryScanner() {
   );
 }
 
-export default RetryScanner;
+export default RetryStepScan;

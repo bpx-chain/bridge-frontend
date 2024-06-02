@@ -2,26 +2,39 @@ import {
   MDBBtn,
   MDBIcon
 } from 'mdb-react-ui-kit';
+import {
+  useAccount,
+  useReadContract,
+  useWriteContract,
+  useWaitForTransactionReceipt
+} from 'wagmi';
 import { erc20Abi } from 'viem';
-import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
 import { assets } from '../configs/Assets';
 import { chains } from '../configs/Chains';
 
-import BridgeStepTransfer from './BridgeStepTransfer';
-
 function BridgeStepAllowance(props) {
   const {
-    data: allowance,
+    asset,
+    children
+  } = props;
+  
+  const {
+    address,
+    chainId
+  } = useAccount();
+  
+  const {
+    data: allowanceRaw,
     status: allowanceStatus
   } = useReadContract({
     abi: erc20Abi,
-    address: assets[props.asset].contracts[props.srcChain],
+    address: assets[asset].contracts[chainId],
     functionName: 'allowance',
     args: [
-      props.address,
-      chains[props.srcChain].contract
+      address,
+      chains[chainId].contract
     ]
   });
   const {
@@ -34,15 +47,15 @@ function BridgeStepAllowance(props) {
     status: approveTxStatus
   } = useWaitForTransactionReceipt({ hash: approveTxid });
   
-  const allowanceWei = allowanceStatus == 'success' ? new BigNumber(allowance) : null;
+  const allowance = allowanceStatus == 'success' ? new BigNumber(allowanceRaw) : null;
   
   function approve() {
     approveWriteContract({
-      address: assets[props.asset].contracts[props.srcChain],
+      address: assets[asset].contracts[chainId],
       abi: erc20Abi,
       functionName: 'approve',
       args: [
-        chains[props.srcChain].contract,
+        chains[chainId].contract,
         '0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff'
       ]
     });
@@ -63,7 +76,7 @@ function BridgeStepAllowance(props) {
      return (
        <MDBBtn block disabled>
         <MDBIcon icon='circle-notch' spin className='me-2' />
-        Waiting for confirmation... (Approve {props.asset})
+        Waiting for confirmation... (Approve {asset})
       </MDBBtn>
      );
   else if(approveStatus == 'error')
@@ -76,7 +89,7 @@ function BridgeStepAllowance(props) {
     return (
        <MDBBtn block disabled>
         <MDBIcon icon='circle-notch' spin className='me-2' />
-        Approving {props.asset}...
+        Approving {asset}...
       </MDBBtn>
      );
   else if(allowanceStatus == 'error')
@@ -92,16 +105,14 @@ function BridgeStepAllowance(props) {
         Checking allowance...
       </MDBBtn>
     );
-  else if(props.amountWei > allowanceWei)
+  else if(props.amount > allowance)
     return (
       <MDBBtn block onClick={approve}>
-        Approve {props.asset}
+        Approve {asset}
       </MDBBtn>
     );
   else
-    return (
-      <BridgeStepTransfer {...props} />
-    );
+    return children;
 }
 
 export default BridgeStepAllowance;

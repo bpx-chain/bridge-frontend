@@ -5,7 +5,6 @@ import {
   MDBBtn,
   MDBIcon
 } from 'mdb-react-ui-kit';
-import BigNumber from 'bignumber.js';
 
 import SelectAsset from './SelectAsset';
 import InputAmount from './InputAmount';
@@ -98,7 +97,7 @@ function TabBridge() {
         </MDBCol>
       </MDBRow>
       
-      <BridgeStepValidate asset={asset} amount={amount ? new BigNumber(amount) : null} srcChain={srcChain} dstChain={dstChain} />
+      <BridgeStepValidate asset={asset} amount={amount} srcChain={srcChain} dstChain={dstChain} />
     </>
   );
 }

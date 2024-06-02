@@ -3,18 +3,30 @@ import {
 } from 'mdb-react-ui-kit';
 import BigNumber from 'bignumber.js';
 
-import BridgeStepWalletConnect from './BridgeStepWalletConnect';
+import { assets } from '../configs/Assets';
+
+import BridgeStepMessage from './BridgeStepMessage';
 
 function BridgeStepValidate(props) {
-  const valid = props.amount && props.amount != 0 && props.srcChain && props.dstChain;
-  const amountWei = valid ? new BigNumber(props.amount) : null;
+  const {
+    asset,
+    srcChain,
+    dstChain
+  } = props;
+  const amount = props.amount
+    ? new BigNumber(props.amount).shiftedBy(assets[asset].decimals)
+    : null;
   
-  if(valid)
-    return (
-      <BridgeStepWalletConnect amountWei={amountWei} {...props} />
-    );
+  const valid = amount && amount != 0 && srcChain && dstChain;
   
-  return (
+  return (amount && amount != 0 && srcChain && dstChain) ? (
+    <BridgeStepMessage
+     asset={asset}
+     amount={amount}
+     srcChain={srcChain}
+     dstChain={dstChain}
+    />
+  ) : (
     <MDBBtn block disabled>
       Continue
     </MDBBtn>

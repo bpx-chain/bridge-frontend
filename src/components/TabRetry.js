@@ -1,21 +1,25 @@
+import { useState, useEffect } from 'react';
 import {
   MDBCol,
   MDBRow
 } from 'mdb-react-ui-kit';
-import { useAccount, useSwitchChain } from 'wagmi';
+import { useAccount } from 'wagmi';
 
 import { chains } from '../configs/Chains';
 
 import SelectChain from './SelectChain';
-import RetryScanner from './RetryScanner';
+import ConnectWallet from './ConnectWallet';
+import RetryStepScan from './RetryStepScan';
 
 function TabRetry() {
-  const { chainId } = useAccount();
-  const { switchChain } = useSwitchChain();
+  const [requiredChain, setRequiredChain] = useState(null);
   
-  function handleChangeChain(newValue) {
-    switchChain({ chainId: newValue });
-  };
+  const { chainId } = useAccount();
+  
+  useEffect(function() {
+    if(chainId && !requiredChain)
+      setRequiredChain(chainId);
+  }, [chainId]);
   
   return (
     <>
@@ -24,11 +28,15 @@ function TabRetry() {
           Source chain:
         </MDBCol>
         <MDBCol>
-          <SelectChain options={chains} value={chainId} onChange={handleChangeChain} /> 
+          <SelectChain options={chains} value={requiredChain} onChange={setRequiredChain} />
         </MDBCol>
       </MDBRow>
       
-      <RetryScanner />
+      {chainId && (
+        <ConnectWallet requiredChain={requiredChain}>
+          <h1>test</h1>
+        </ConnectWallet>
+      )}
     </>
   );
 }

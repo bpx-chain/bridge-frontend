@@ -24,7 +24,7 @@ function BridgeStepMessage(props) {
   if(message)
     return (
       <ConnectWallet requiredChain={dstChain}>
-        <BridgeStepSignatures message={message} {...props} />
+        <BridgeStepSignatures message={message} />
       </ConnectWallet>
     );
   else if(assets[asset].contracts[srcChain])

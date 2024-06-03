@@ -34,7 +34,6 @@ import { config } from './WalletProvider';
 
 function BridgeStepSignatures(props) {
   const {
-    srcChain,
     message,
     requestRetry
   } = props;
@@ -63,7 +62,6 @@ function BridgeStepSignatures(props) {
       setEpoch(newEpoch);
   }, [latestBlock]);
 
-  const messageHash = keccak256(message);
   const [relayers, setRelayers] = useState([]);
   const [signatures, setSignatures] = useState([]);
   
@@ -79,8 +77,8 @@ function BridgeStepSignatures(props) {
             address: chains[chainId].contract,
             functionName: 'messageGetRelayers',
             args: [
-              srcChain,
-              messageHash,
+              message.srcChainId,
+              message.messageHash,
               epoch
             ]
           })
@@ -126,7 +124,7 @@ function BridgeStepSignatures(props) {
         continue;
       }
     
-      if(typeof msg.messageHash != 'string' || msg.messageHash != messageHash)
+      if(typeof msg.messageHash != 'string' || msg.messageHash != message.messageHash)
         continue;
       
       if(typeof msg.epoch != 'number' || !Number.isInteger(msg.epoch) || msg.epoch < 1)
@@ -142,7 +140,6 @@ function BridgeStepSignatures(props) {
         continue;
         
       tmpMessages.push(msg);
-      console.log(tmpMessages);
     }
   }, [filterMessages, storeMessages]);
   
@@ -154,36 +151,35 @@ function BridgeStepSignatures(props) {
     
     setRrProgress(0);
     
-    async function sendRetryRequest(relayer) {
-        const contentTopic = '/bridge/1/retry-' + decodedMessage.srcChainId + '-' +
-          decodedMessage.dstChainId + '-' + address.toLowerCase() + '/json';
-        const encoder = createEncoder({ contentTopic });
-        
-        const request = {
-          from: address,
-          message: message,
-          txid: transactionHash
-        };
+    const payload = utf8ToBytes(JSON.stringify({
+      from: address,
+      message: message.messageBody,
+      txid: message.txid
+    }));
     
+    async function sendRetryRequests(index) {
+      const contentTopic = '/bridge/1/retry-' + message.srcChainId + '-' +
+        message.dstChainId + '-' + relayers[index].toLowerCase() + '/json';
+      const encoder = createEncoder({ contentTopic });
+      
       try {
-        await synapse.lightPush.send(encoder, {
-          payload: utf8ToBytes(JSON.stringify(request))
-        });
+        await synapse.lightPush.send(encoder, { payload });
+        
+        if(index == 7)
+          setRrProgress(null);
+        else {
+          setRrProgress(index + 1);
+          sendRetryRequests(index + 1);
+        }
       }
       catch(e) {
-        setTimeout(async function() {
-          await sendRetryRequest(relayer);
+        setTimeout(function() {
+          sendRetryRequests(index);
         }, 3000);
       }
-      
-      setRrProgress(rrProgress == 7 ? null : rrProgress + 1);
     };
     
-    async function sendRetryRequests() {
-      for(const relayer of relayers)
-        await sendRetryRequest(relayer);
-    };
-    sendRetryRequests();
+    sendRetryRequests(0);
   }, [relayers]);
   
   return (
@@ -214,7 +210,7 @@ function BridgeStepSignatures(props) {
                 <small>
                   <strong>Message hash:</strong>
                   <br />
-                  {messageHash}
+                  {message.messageHash}
                 </small>
               </MDBCol>
               <MDBCol>

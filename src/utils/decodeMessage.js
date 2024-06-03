@@ -1,12 +1,13 @@
 import {
   decodeAbiParameters,
-  zeroAddress
+  zeroAddress,
+  keccak256
 } from 'viem';
 import BigNumber from 'bignumber.js';
 
 import { assets } from '../configs/Assets';
 
-function decodeMessage(message) {
+function decodeMessage(log) {
   const homeChainId = 279;
   
   const decodedMessage = decodeAbiParameters(
@@ -19,8 +20,10 @@ function decodeMessage(message) {
       { name: 'dstAddress', type: 'address' },
       { name: 'value', 'type': 'uint256' }
     ],
-    message
+    log.args.message
   );
+  
+  const messageHash = keccak256(log.args.message);
   
   let asset;
   const assetContract = decodedMessage[4] == zeroAddress ? null : decodedMessage[4];
@@ -33,11 +36,14 @@ function decodeMessage(message) {
   }
   
   return {
+    messageBody: log.args.message,
+    messageHash: messageHash,
     srcChainId: parseInt(decodedMessage[0]),
     dstChainId: parseInt(decodedMessage[1]),
     asset: asset,
     dstAddress: decodedMessage[5],
-    value: new BigNumber(decodedMessage[6])
+    value: new BigNumber(decodedMessage[6]),
+    txid: log.transactionHash
   };
 }
 

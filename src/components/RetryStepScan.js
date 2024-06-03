@@ -23,7 +23,7 @@ import decodeMessage from '../utils/decodeMessage';
 
 function RetryStepScan(props) {
   const {
-    setRetryContext
+    setMessage
   } = props;
   
   const homeChainId = 279;
@@ -109,8 +109,8 @@ function RetryStepScan(props) {
       {allLogs.length > 0 && (
         <MDBListGroup style={{ maxHeight: '400px', overflowY: 'scroll' }}>
           {allLogs.map(function(log) {
-            const msg = decodeMessage(log.args.message);
-            const value = msg.value.shiftedBy(-assets[msg.asset].decimals).toFormat(
+            const decodedMessage = decodeMessage(log);
+            const value = decodedMessage.value.shiftedBy(-assets[decodedMessage.asset].decimals).toFormat(
               null,
               null,
               {
@@ -127,20 +127,20 @@ function RetryStepScan(props) {
             
             return (
               <MDBListGroupItem
-               key={log.args.message}
+               key={decodedMessage.messageHash}
                className='d-flex justify-content-between align-items-center'
               >
                 <div className='d-flex align-items-center'>
                   <img
-                    src={assets[msg.asset].icon}
+                    src={assets[decodedMessage.asset].icon}
                     style={{ width: '45px', height: '45px' }}
                   />
                   <div className='ms-3' style={{ fontSize: '12px' }}>
-                    <p className='fw-bold mb-1'>Transfer {value} {msg.asset}</p>
+                    <p className='fw-bold mb-1'>Transfer {value} {decodedMessage.asset}</p>
                     <p className='text-muted mb-0'>
-                      {chains[chainId].name}
+                      {chains[decodedMessage.srcChainId].name}
                       <MDBIcon icon='arrow-right' className='mx-2' />
-                      {chains[msg.dstChainId].name}
+                      {chains[decodedMessage.dstChainId].name}
                     </p>
                   </div>
                 </div>
@@ -148,7 +148,7 @@ function RetryStepScan(props) {
                  size='sm'
                  rounded
                  color='link'
-                 onClick={() => { setRetryContext(msg.dstChainId, log.args.message); }}
+                 onClick={() => { setMessage(decodedMessage); }}
                 >
                   Retry
                 </MDBBtn>

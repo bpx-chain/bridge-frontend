@@ -4,7 +4,6 @@ import {
   MDBRow
 } from 'mdb-react-ui-kit';
 import { useAccount } from 'wagmi';
-import { keccak256 } from 'viem';
 
 import { chains } from '../configs/Chains';
 
@@ -15,7 +14,6 @@ import BridgeStepSignatures from './BridgeStepSignatures';
 
 function TabRetry() {
   const [srcChain, setSrcChain] = useState(null);
-  const [dstChain, setDstChain] = useState(null);
   const [message, setMessage] = useState(null);
   
   const { chainId } = useAccount();
@@ -24,11 +22,6 @@ function TabRetry() {
     if(chainId && !srcChain)
       setSrcChain(chainId);
   }, [chainId, srcChain]);
-  
-  function setRetryContext(newDstChain, newMessage) {
-    setDstChain(newDstChain);
-    setMessage(newMessage);
-  };
   
   return (
     <>
@@ -48,16 +41,16 @@ function TabRetry() {
               Message hash:
             </MDBCol>
             <MDBCol>
-              <small>{keccak256(message)}</small>
+              <small>{message.messageHash}</small>
             </MDBCol>
           </MDBRow>
-          <ConnectWallet requiredChain={dstChain}>
-            <BridgeStepSignatures srcChain={srcChain} message={message} requestRetry={true} />
+          <ConnectWallet requiredChain={message.dstChainId}>
+            <BridgeStepSignatures message={message} requestRetry={true} />
           </ConnectWallet>
         </>
       ) : (
         <ConnectWallet requiredChain={srcChain}>
-          <RetryStepScan setRetryContext={setRetryContext} />
+          <RetryStepScan setMessage={setMessage} />
         </ConnectWallet>
       )}
     </>

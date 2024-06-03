@@ -14,6 +14,8 @@ import { assets } from '../configs/Assets';
 import { chains } from '../configs/Chains';
 import { abiBridge } from '../configs/AbiBridge';
 
+import decodeMessage from '../utils/decodeMessage';
+
 function BridgeStepTransfer(props) {
   const {
     asset,
@@ -49,7 +51,7 @@ function BridgeStepTransfer(props) {
         topics: event.topics
       });
       if(eventDecoded.eventName == 'MessageCreated') {
-        setMessage(eventDecoded.args.message);
+        setMessage(decodeMessage(eventDecoded));
         return;
       }
     }

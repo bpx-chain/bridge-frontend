@@ -15,8 +15,9 @@ import { getLogs } from 'viem/actions';
 import { useBlockNumber, useAccount } from 'wagmi';
 import { parseAbiItem } from 'viem';
 
-import { chains } from '../configs/Chains';
-import { assets } from '../configs/Assets';
+import { chains } from '../configs/chains';
+import { assets } from '../configs/assets';
+import { homeChainId } from '../configs/homeChainId';
 import { config } from './WalletProvider';
 
 import decodeMessage from '../utils/decodeMessage';

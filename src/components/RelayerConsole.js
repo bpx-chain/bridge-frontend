@@ -5,8 +5,9 @@ import {
 } from 'mdb-react-ui-kit';
 import { useAccount, useReadContract } from 'wagmi';
 
-import { chains } from '../configs/Chains';
-import { abiBridge } from '../configs/AbiBridge';
+import { chains } from '../configs/chains';
+import { abiBridge } from '../configs/abiBridge';
+import { homeChainId } from '../configs/homeChainId';
 
 import SelectChain from './SelectChain';
 import RelayerStatus from './RelayerStatus';
@@ -15,8 +16,6 @@ import RelayerCmdDeactivate from './RelayerCmdDeactivate';
 import RelayerCmdWithdraw from './RelayerCmdWithdraw';
 
 function TabRelayer() {
-  const homeChainId = 279;
-  
   const { address, chainId } = useAccount();
   
   function createOppChains() {

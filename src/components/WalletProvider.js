@@ -3,7 +3,7 @@ import { defaultWagmiConfig } from '@web3modal/wagmi/react/config';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import { chains as cfgChains } from '../configs/Chains';
+import { chains as cfgChains } from '../configs/chains';
 
 // 0. Setup queryClient
 const queryClient = new QueryClient();

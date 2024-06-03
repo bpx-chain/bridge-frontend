@@ -3,7 +3,7 @@ import {
 } from 'mdb-react-ui-kit';
 import BigNumber from 'bignumber.js';
 
-import { assets } from '../configs/Assets';
+import { assets } from '../configs/assets';
 
 import BridgeStepMessage from './BridgeStepMessage';
 

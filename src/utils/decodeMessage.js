@@ -5,11 +5,10 @@ import {
 } from 'viem';
 import BigNumber from 'bignumber.js';
 
-import { assets } from '../configs/Assets';
+import { assets } from '../configs/assets';
+import { homeChainId } from '../configs/homeChainId';
 
 function decodeMessage(log) {
-  const homeChainId = 279;
-  
   const decodedMessage = decodeAbiParameters(
     [
       { name: 'srcChainId', type: 'uint256' },

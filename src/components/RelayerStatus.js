@@ -7,7 +7,7 @@ import {
 import { useAccount } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
-import { chains } from '../configs/Chains';
+import { chains } from '../configs/chains';
 
 function RelayerStatus(props) {
   const { address, chainId } = useAccount();

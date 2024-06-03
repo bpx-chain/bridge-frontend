@@ -7,8 +7,8 @@ import {
 } from 'mdb-react-ui-kit';
 import { useAccount, useWriteContract } from 'wagmi';
 
-import { chains } from '../configs/Chains';
-import { abiBridge } from '../configs/AbiBridge';
+import { chains } from '../configs/chains';
+import { abiBridge } from '../configs/abiBridge';
 
 import MsgBox from './MsgBox';
 

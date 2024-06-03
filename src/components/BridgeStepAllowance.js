@@ -11,8 +11,8 @@ import {
 import { erc20Abi } from 'viem';
 import BigNumber from 'bignumber.js';
 
-import { assets } from '../configs/Assets';
-import { chains } from '../configs/Chains';
+import { assets } from '../configs/assets';
+import { chains } from '../configs/chains';
 
 function BridgeStepAllowance(props) {
   const {

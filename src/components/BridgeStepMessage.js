@@ -4,8 +4,8 @@ import {
   MDBIcon
 } from 'mdb-react-ui-kit';
 
-import { assets } from '../configs/Assets';
-import { chains } from '../configs/Chains';
+import { assets } from '../configs/assets';
+import { chains } from '../configs/chains';
 
 import ConnectWallet from './ConnectWallet';
 import BridgeStepAllowance from './BridgeStepAllowance';

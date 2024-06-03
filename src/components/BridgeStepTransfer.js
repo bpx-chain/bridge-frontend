@@ -10,9 +10,9 @@ import {
 } from 'wagmi';
 import { decodeEventLog } from 'viem';
 
-import { assets } from '../configs/Assets';
-import { chains } from '../configs/Chains';
-import { abiBridge } from '../configs/AbiBridge';
+import { assets } from '../configs/assets';
+import { chains } from '../configs/chains';
+import { abiBridge } from '../configs/abiBridge';
 
 import decodeMessage from '../utils/decodeMessage';
 

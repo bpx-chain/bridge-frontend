@@ -28,8 +28,8 @@ import {
 } from "@bpx-chain/synapse-sdk";
 
 import { pubSubTopic } from './SynapseProvider';
-import { chains } from '../configs/Chains';
-import { abiBridge } from '../configs/AbiBridge';
+import { chains } from '../configs/chains';
+import { abiBridge } from '../configs/abiBridge';
 import { config } from './WalletProvider';
 
 function BridgeStepSignatures(props) {
@@ -141,6 +141,8 @@ function BridgeStepSignatures(props) {
         
       tmpMessages.push(msg);
     }
+    
+    console.log(tmpMessages);
   }, [filterMessages, storeMessages]);
   
   const [rrProgress, setRrProgress] = useState(null);

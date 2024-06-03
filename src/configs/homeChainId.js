@@ -1,0 +1,1 @@
+export const homeChainId = 279;

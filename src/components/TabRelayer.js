@@ -5,7 +5,7 @@ import {
 } from 'mdb-react-ui-kit';
 import { useAccount } from 'wagmi';
 
-import { chains } from '../configs/Chains';
+import { chains } from '../configs/chains';
 
 import SelectChain from './SelectChain';
 import ConnectWallet from './ConnectWallet';

@@ -11,12 +11,11 @@ import InputAmount from './InputAmount';
 import SelectChain from './SelectChain';
 import BridgeStepValidate from './BridgeStepValidate';
 
-import { assets } from '../configs/Assets';
-import { chains } from '../configs/Chains';
+import { assets } from '../configs/assets';
+import { chains } from '../configs/chains';
+import { homeChainId } from '../configs/homeChainId';
 
 function TabBridge() {
-  const homeChainId = 279;
-  
   const [asset, setAsset] = useState(Object.keys(assets)[0]);
   const [amount, setAmount] = useState('');
   const [srcChain, setSrcChain] = useState(null);

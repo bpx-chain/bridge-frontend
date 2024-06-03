@@ -8,8 +8,8 @@ import {
 import { useAccount, useReadContract, useWriteContract } from 'wagmi';
 import BigNumber from 'bignumber.js';
 
-import { chains } from '../configs/Chains';
-import { abiBridge } from '../configs/AbiBridge';
+import { chains } from '../configs/chains';
+import { abiBridge } from '../configs/abiBridge';
 
 import MsgBox from './MsgBox';
 

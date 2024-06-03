@@ -5,8 +5,8 @@ import {
 import { useWeb3Modal } from '@web3modal/wagmi/react';
 import { useAccount, useSwitchChain } from 'wagmi';
 
-import { assets } from '../configs/Assets';
-import { chains } from '../configs/Chains';
+import { assets } from '../configs/assets';
+import { chains } from '../configs/chains';
 
 function ConnectWallet(props) {
   const {

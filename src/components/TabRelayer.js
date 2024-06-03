@@ -19,7 +19,7 @@ function TabRelayer() {
   useEffect(function() {
     if(chainId && !requiredChain)
       setRequiredChain(chainId);
-  }, [chainId]);
+  }, [chainId, requiredChain]);
   
   return (
     <>
@@ -32,7 +32,7 @@ function TabRelayer() {
         </MDBCol>
       </MDBRow>
       
-      {chainId && (
+      {requiredChain && (
         <ConnectWallet requiredChain={requiredChain}>
           <RelayerConsole />
         </ConnectWallet>

@@ -21,7 +21,11 @@ import {
   useFilterMessages,
   useStoreMessages
 } from "@bpx-chain/synapse-react";
-import { createDecoder } from "@bpx-chain/synapse-sdk";
+import {
+  createDecoder,
+  createEncoder,
+  utf8ToBytes
+} from "@bpx-chain/synapse-sdk";
 
 import { pubSubTopic } from './SynapseProvider';
 import { chains } from '../configs/Chains';
@@ -31,7 +35,8 @@ import { config } from './WalletProvider';
 function BridgeStepSignatures(props) {
   const {
     srcChain,
-    message
+    message,
+    requestRetry
   } = props;
   
   const {
@@ -54,7 +59,7 @@ function BridgeStepSignatures(props) {
     
     const newEpoch = new BigNumber(latestBlock.timestamp).div(60).div(20).dp(0, BigNumber.ROUND_DOWN);
     
-    if(epoch != newEpoch)
+    if(!newEpoch.eq(epoch))
       setEpoch(newEpoch);
   }, [latestBlock]);
 
@@ -141,6 +146,46 @@ function BridgeStepSignatures(props) {
     }
   }, [filterMessages, storeMessages]);
   
+  const [rrProgress, setRrProgress] = useState(null);
+  
+  useEffect(function() {
+    if(relayers.length != 8 || !requestRetry)
+      return;
+    
+    setRrProgress(0);
+    
+    async function sendRetryRequest(relayer) {
+        const contentTopic = '/bridge/1/retry-' + decodedMessage.srcChainId + '-' +
+          decodedMessage.dstChainId + '-' + address.toLowerCase() + '/json';
+        const encoder = createEncoder({ contentTopic });
+        
+        const request = {
+          from: address,
+          message: message,
+          txid: transactionHash
+        };
+    
+      try {
+        await synapse.lightPush.send(encoder, {
+          payload: utf8ToBytes(JSON.stringify(request))
+        });
+      }
+      catch(e) {
+        setTimeout(async function() {
+          await sendRetryRequest(relayer);
+        }, 3000);
+      }
+      
+      setRrProgress(rrProgress == 7 ? null : rrProgress + 1);
+    };
+    
+    async function sendRetryRequests() {
+      for(const relayer of relayers)
+        await sendRetryRequest(relayer);
+    };
+    sendRetryRequests();
+  }, [relayers]);
+  
   return (
     <>
       <MDBCard border className='p-2 mb-4' style={{ backgroundColor: '#ececec' }}>
@@ -192,7 +237,15 @@ function BridgeStepSignatures(props) {
       
       <MDBBtn block disabled>
         <MDBIcon icon='circle-notch' spin className='me-2' />
-        Waiting for signatures... ({signatures.length}/8)
+        {rrProgress !== null ? (
+          <>
+            Requesting retry... ({rrProgress}/8)
+          </>
+        ) : (
+          <>
+            Waiting for signatures... ({signatures.length}/8)
+          </>
+        )}
       </MDBBtn>
     </>
   );

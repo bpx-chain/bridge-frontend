@@ -48,7 +48,7 @@ function TabRetry() {
             <BridgeStepSignatures message={message} requestRetry={true} />
           </ConnectWallet>
         </>
-      ) : (
+      ) : srcChain && (
         <ConnectWallet requiredChain={srcChain}>
           <RetryStepScan setMessage={setMessage} />
         </ConnectWallet>

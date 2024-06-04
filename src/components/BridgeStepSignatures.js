@@ -11,19 +11,20 @@ import {
   useBlock
 } from 'wagmi';
 import {
-  getClient,
   readContract
 } from '@wagmi/core';
-import { keccak256 } from 'viem';
+import {
+  encodePacked,
+  keccak256,
+  recoverMessageAddress
+} from 'viem';
 import BigNumber from 'bignumber.js';
 import {
-  useWaku,
-  useFilterMessages,
-  useStoreMessages
+  useWaku
 } from "@bpx-chain/synapse-react";
 import {
-  createDecoder,
   createEncoder,
+  createDecoder,
   utf8ToBytes
 } from "@bpx-chain/synapse-sdk";
 
@@ -48,7 +49,6 @@ function BridgeStepSignatures(props) {
     blockTag: 'latest',
     watch: true
   });
-  const publicClient = getClient(config);
   
   const [epoch, setEpoch] = useState(null);
   
@@ -63,7 +63,6 @@ function BridgeStepSignatures(props) {
   }, [latestBlock]);
 
   const [relayers, setRelayers] = useState([]);
-  const [signatures, setSignatures] = useState([]);
   
   useEffect(function() {
     if(!epoch)
@@ -88,62 +87,119 @@ function BridgeStepSignatures(props) {
         setTimeout(getRelayersOnEpochChange, 3000);
         setRelayers([]);
       }
-      setSignatures([null, null, null, null, null, null, null, null]);
     };
     
     getRelayersOnEpochChange();
   }, [epoch]);
   
-  const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
-  const decoder = createDecoder(contentTopic, pubsubTopic);
-  const { node: synapse } = useWaku();
-  const [ cursor, setCursor ] = useState(null);
-  const { messages: storeMessages } = useStoreMessages({
-    node: synapse,
-    decoder,
-    options: {
-      cursor,
-      pageDirection: "forward"
+  const [allSignatures, setAllSignatures] = useState([]);
+  
+  function onMsg(rawMsg) {
+    if(!rawMsg.payload)
+      return;
+  
+    let msg;
+    try {
+      msg = JSON.parse(new TextDecoder().decode(rawMsg.payload));
+    } catch(e) {
+      return;
     }
-  });
-  const { messages: filterMessages } = useFilterMessages({ node: synapse, decoder });
+  
+    if(typeof msg.messageHash != 'string' || msg.messageHash != message.messageHash)
+      return;
+    
+    if(typeof msg.epoch != 'number' || !Number.isInteger(msg.epoch) || msg.epoch < 1)
+      return;
+    
+    if(typeof msg.v != 'number' || !Number.isInteger(msg.v) || msg.v < 0)
+      return;
+    
+    if(typeof msg.r != 'string' || !msg.r.match(/^0x[0-9a-f]{64}$/))
+      return;
+    
+    if(typeof msg.s != 'string' || !msg.s.match(/^0x[0-9a-f]{64}$/))
+      return;
+    
+    const signature = { r: msg.r, s: msg.s, v: msg.v };
+    const epochHash = keccak256(encodePacked(
+      ['bytes32', 'uint64'],
+      [msg.messageHash, epoch]
+    ));
+    
+    let recoveredAddr;
+    try {
+      recoveredAddr = recoverMessageAddress({
+        message: { raw: epochHash },
+        signature
+      });
+    }
+    catch(e) {
+      return;
+    }
+    
+    let tmpAllSignatures = signatures;
+    tmpAllSignatures.push({
+      epoch: msg.epoch,
+      relayer: recoveredAddr,
+      signature: signature
+    });
+    setAllSignatures(tmpAllSignatures);
+  };
+  
+  const { node: synapse } = useWaku();
   
   useEffect(function() {
-    if(storeMessages.length)
-      setCursor(storeMessages[storeMessages.length-1]);
+    console.log(synapse);
     
-    let tmpMessages = [];
-    for(const rawMsg of storeMessages.concat(filterMessages)) {
-      if(!rawMsg.payload)
-        continue;
+    const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
+    const decoder = createDecoder(contentTopic, pubsubTopic);
     
-      let msg;
+    async function startFilter() {  
       try {
-        msg = JSON.parse(new TextDecoder().decode(rawMsg.payload));
-      } catch(e) {
-        continue;
+        await synapse.filter.subscribe(
+          [decoder],
+          onMsg
+        );
       }
+      catch(e) {
+        setTimeout(startFilter, 3000);
+      }
+    };
     
-      if(typeof msg.messageHash != 'string' || msg.messageHash != message.messageHash)
+    async function startStore() {
+      try {
+        await(synapse.store.queryWithOrderedCallback(
+          [decoder],
+          onMsg
+        ));
+      }
+      catch(e) {
+        setTimeout(startStore, 3000);
+      }
+    };
+    
+    startFilter();
+    startStore();
+  }, [synapse]);
+  
+  const [signatures, setSignatures] = useState([]);
+  
+  useEffect(function() {
+    let tmpSignatures = [null, null, null, null, null, null, null, null];
+    
+    for(const sig of allSignatures) {
+      if(sig.epoch != epoch)
         continue;
-      
-      if(typeof msg.epoch != 'number' || !Number.isInteger(msg.epoch) || msg.epoch < 1)
+    
+      const relayerIndex = relayers.indexOf(sig.relayer);
+      if(relayerIndex == -1)
         continue;
-      
-      if(typeof msg.v != 'number' || !Number.isInteger(msg.v) || msg.v < 0)
-        continue;
-      
-      if(typeof msg.r != 'string' || !msg.r.match(/^0x[0-9a-f]{64}$/))
-        continue;
-      
-      if(typeof msg.s != 'string' || !msg.s.match(/^0x[0-9a-f]{64}$/))
-        continue;
-        
-      tmpMessages.push(msg);
+    
+      tmpSignatures[relayerIndex] = sig.signature;
     }
     
-    console.log(tmpMessages);
-  }, [filterMessages, storeMessages]);
+    setSignatures(tmpSignatures);
+  }, [relayers, allSignatures]);
   
   const [rrProgress, setRrProgress] = useState(null);
   
@@ -189,11 +245,15 @@ function BridgeStepSignatures(props) {
                 <small><strong>Relayers delegated to sign a cross-chain message:</strong></small>
               </MDBCol>
             </MDBRow>
-            {relayers.map(function(relayer) {
+            {relayers.map(function(relayer, index) {
               return (
-                <MDBRow key={relayer}>
+                <MDBRow key={index}>
                   <MDBCol size='auto' className='my-auto'>
-                    <MDBIcon icon='circle-notch' spin className='ms-3' />
+                    {signatures[index] === null ? (
+                      <MDBIcon icon='circle-notch' spin className='ms-3' />
+                    ) : (
+                      <MDBIcon icon='check' spin color='success' className='ms-3' />
+                    )}
                   </MDBCol>
                   <MDBCol className='my-auto py-1'>
                     {relayer}
@@ -228,18 +288,24 @@ function BridgeStepSignatures(props) {
         )}
       </MDBCard>
       
-      <MDBBtn block disabled>
-        <MDBIcon icon='circle-notch' spin className='me-2' />
-        {rrProgress !== null ? (
-          <>
-            Requesting retry... ({rrProgress}/8)
-          </>
-        ) : (
-          <>
-            Waiting for signatures... ({signatures.length}/8)
-          </>
-        )}
-      </MDBBtn>
+      {(signatures.length != 8 || signatures.indexOf(null) != -1) ? (
+        <MDBBtn block disabled>
+          <MDBIcon icon='circle-notch' spin className='me-2' />
+          {rrProgress !== null ? (
+            <>
+              Requesting retry... ({rrProgress}/8)
+            </>
+          ) : (
+            <>
+              Waiting for signatures... ({signatures.filter(x => x !== null).length}/8)
+            </>
+          )}
+        </MDBBtn>
+      ) : (
+        <MDBBtn block>
+          Process message
+        </MDBBtn>
+      )}
     </>
   );
 }

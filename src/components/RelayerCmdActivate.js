@@ -52,9 +52,11 @@ function RelayerCmdActivate(props) {
   
   return relayerGetStakeStatus == 'success' && (
     <>
-      <MsgBox open={!!writeContractError} title='Error'>
-        {writeContractError && writeContractError.shortMessage}
-      </MsgBox>
+      {writeContractError && (
+        <MsgBox title='Error'>
+          {writeContractError.shortMessage}
+        </MsgBox>
+      )}
       <MDBCard border className='p-3'>
         <MDBRow>
           <MDBCol>

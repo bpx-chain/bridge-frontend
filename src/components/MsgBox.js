@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   MDBBtn,
   MDBModal,
@@ -12,17 +12,10 @@ import {
 
 function MsgBox(props) {
   const {
-    open,
     title
   } = props;
   
-  const [basicModal, setBasicModal] = useState(open);
-  
-  useEffect(function() {
-    setBasicModal(open);
-  }, [open]);
-  
-  const toggleOpen = () => setBasicModal(!basicModal);
+  const [basicModal, setBasicModal] = useState(true);
   
   return (
     <MDBModal open={basicModal} onClose={() => setBasicModal(false)} tabIndex='-1'>
@@ -30,12 +23,12 @@ function MsgBox(props) {
         <MDBModalContent>
           <MDBModalHeader>
             <MDBModalTitle>{title}</MDBModalTitle>
-            <MDBBtn className='btn-close' color='none' onClick={toggleOpen}></MDBBtn>
+            <MDBBtn className='btn-close' color='none' onClick={() => setBasicModal(false)}></MDBBtn>
           </MDBModalHeader>
           <MDBModalBody>{props.children}</MDBModalBody>
 
           <MDBModalFooter>
-            <MDBBtn onClick={toggleOpen}>
+            <MDBBtn onClick={() => setBasicModal(false)}>
               Close
             </MDBBtn>
           </MDBModalFooter>

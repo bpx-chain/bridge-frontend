@@ -14,6 +14,8 @@ import BigNumber from 'bignumber.js';
 import { assets } from '../configs/assets';
 import { chains } from '../configs/chains';
 
+import MsgBox from './MsgBox';
+
 function BridgeStepAllowance(props) {
   const {
     asset,
@@ -40,6 +42,7 @@ function BridgeStepAllowance(props) {
   const {
     data: approveTxid,
     status: approveStatus,
+    error: approveError,
     reset: approveReset,
     writeContract: approveWriteContract
   } = useWriteContract();
@@ -81,9 +84,14 @@ function BridgeStepAllowance(props) {
      );
   else if(approveStatus == 'error')
     return (
-      <MDBBtn block onClick={approveRetry}>
-        Approve transaction failed. Retry?
-      </MDBBtn>
+      <>
+        <MsgBox title='Error'>
+          {approveError.shortMessage}
+        </MsgBox>
+        <MDBBtn block onClick={approveRetry}>
+          Approve transaction failed. Retry?
+        </MDBBtn>
+      </>
     );
   else if(approveStatus == 'pending')
     return (

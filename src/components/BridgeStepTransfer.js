@@ -16,6 +16,8 @@ import { abiBridge } from '../configs/abiBridge';
 
 import decodeMessage from '../utils/decodeMessage';
 
+import MsgBox from './MsgBox';
+
 function BridgeStepTransfer(props) {
   const {
     asset,
@@ -32,6 +34,7 @@ function BridgeStepTransfer(props) {
   const {
     data: transferTxid,
     status: transferStatus,
+    error: transferError,
     reset: transferReset,
     writeContract: transferWriteContract
   } = useWriteContract();
@@ -78,7 +81,7 @@ function BridgeStepTransfer(props) {
           assets[asset].contracts[chainId],
           dstChain,
           address,
-          amount
+          amount.toFixed(0)
         ]
       });
   };
@@ -103,9 +106,14 @@ function BridgeStepTransfer(props) {
      );
   else if(transferStatus == 'error')
     return (
-      <MDBBtn block onClick={transferRetry}>
-        Transfer transaction failed. Retry?
-      </MDBBtn>
+      <>
+        <MsgBox title='Error'>
+          {transferError.shortMessage}
+        </MsgBox>
+        <MDBBtn block onClick={transferRetry}>
+          Transfer transaction failed. Retry?
+        </MDBBtn>
+      </>
     );
   else if(transferStatus == 'pending')
     return (

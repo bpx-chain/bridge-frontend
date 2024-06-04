@@ -45,9 +45,11 @@ function RelayerCmdWithdraw(props) {
   
   return relayerGetWithdrawalMaxStatus == 'success' && (
     <>
-      <MsgBox open={!!writeContractError} title='Error'>
-        {writeContractError && writeContractError.shortMessage}
-      </MsgBox>
+      {writeContractError && (
+        <MsgBox title='Error'>
+          {writeContractError.shortMessage}
+        </MsgBox>
+      )}
       <MDBCard border className='p-3 mt-2'>
         <MDBRow>
           <MDBCol>

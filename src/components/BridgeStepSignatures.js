@@ -27,7 +27,7 @@ import {
   utf8ToBytes
 } from "@bpx-chain/synapse-sdk";
 
-import { pubSubTopic } from './SynapseProvider';
+import { pubsubTopic } from './SynapseProvider';
 import { chains } from '../configs/chains';
 import { abiBridge } from '../configs/abiBridge';
 import { config } from './WalletProvider';
@@ -95,7 +95,7 @@ function BridgeStepSignatures(props) {
   }, [epoch]);
   
   const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
-  const decoder = createDecoder(contentTopic, pubSubTopic);
+  const decoder = createDecoder(contentTopic, pubsubTopic);
   const { node: synapse } = useWaku();
   const [ cursor, setCursor ] = useState(null);
   const { messages: storeMessages } = useStoreMessages({
@@ -154,30 +154,25 @@ function BridgeStepSignatures(props) {
     setRrProgress(0);
     
     const payload = utf8ToBytes(JSON.stringify({
-      from: address,
-      message: message.messageBody,
-      txid: message.txid
+      transactionHash: message.txid
     }));
     
     async function sendRetryRequests(index) {
       const contentTopic = '/bridge/1/retry-' + message.srcChainId + '-' +
         message.dstChainId + '-' + relayers[index].toLowerCase() + '/json';
-      const encoder = createEncoder({ contentTopic });
+      const encoder = createEncoder({ contentTopic, pubsubTopic });
       
-      try {
-        await synapse.lightPush.send(encoder, { payload });
-        
-        if(index == 7)
-          setRrProgress(null);
-        else {
-          setRrProgress(index + 1);
-          sendRetryRequests(index + 1);
-        }
-      }
-      catch(e) {
+      const result = await synapse.lightPush.send(encoder, { payload });
+      
+      if(!result.successes.length)
         setTimeout(function() {
           sendRetryRequests(index);
         }, 3000);
+      else if(index == 7)
+        setRrProgress(null);
+      else {
+        setRrProgress(index + 1);
+        sendRetryRequests(index + 1);
       }
     };
     
@@ -196,7 +191,7 @@ function BridgeStepSignatures(props) {
             </MDBRow>
             {relayers.map(function(relayer) {
               return (
-                <MDBRow>
+                <MDBRow key={relayer}>
                   <MDBCol size='auto' className='my-auto'>
                     <MDBIcon icon='circle-notch' spin className='ms-3' />
                   </MDBCol>

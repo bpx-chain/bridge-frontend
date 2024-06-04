@@ -36,9 +36,11 @@ function RelayerCmdDeactivate(props) {
   
   return (
     <>
-      <MsgBox open={!!writeContractError} title='Error'>
-        {writeContractError && writeContractError.shortMessage}
-      </MsgBox>
+      {writeContractError && (
+        <MsgBox title='Error'>
+          {writeContractError.shortMessage}
+        </MsgBox>
+      )}
       <MDBCard border className='p-3'>
         <MDBRow>
           <MDBCol>

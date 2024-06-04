@@ -20,6 +20,7 @@ function TabBridge() {
   const [amount, setAmount] = useState('');
   const [srcChain, setSrcChain] = useState(null);
   const [dstChain, setDstChain] = useState(null);
+  const [formLocked, setFormLocked] = useState(false);
     
   function handleChangeAsset(newValue) {
     setAsset(newValue);
@@ -53,8 +54,6 @@ function TabBridge() {
   for(const ch in chainsOfAsset)
     if(!(ch in assets[asset].contracts))
       delete chainsOfAsset[ch];
-  
-  const formLocked = false;
 
   return (
     <>
@@ -96,7 +95,14 @@ function TabBridge() {
         </MDBCol>
       </MDBRow>
       
-      <BridgeStepValidate asset={asset} amount={amount} srcChain={srcChain} dstChain={dstChain} />
+      <BridgeStepValidate
+       asset={asset}
+       amount={amount}
+       srcChain={srcChain}
+       dstChain={dstChain}
+       formLocked={formLocked}
+       setFormLocked={setFormLocked}
+      />
     </>
   );
 }

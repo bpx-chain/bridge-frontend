@@ -11,7 +11,9 @@ function BridgeStepValidate(props) {
   const {
     asset,
     srcChain,
-    dstChain
+    dstChain,
+    formLocked,
+    setFormLocked
   } = props;
   const amount = props.amount
     ? new BigNumber(props.amount).shiftedBy(assets[asset].decimals)
@@ -19,7 +21,7 @@ function BridgeStepValidate(props) {
   
   const valid = amount && amount != 0 && srcChain && dstChain;
   
-  return (amount && amount != 0 && srcChain && dstChain) ? (
+  return formLocked ? (
     <BridgeStepMessage
      asset={asset}
      amount={amount}
@@ -27,7 +29,7 @@ function BridgeStepValidate(props) {
      dstChain={dstChain}
     />
   ) : (
-    <MDBBtn block disabled>
+    <MDBBtn block disabled={!valid} onClick={setFormLocked}>
       Continue
     </MDBBtn>
   );

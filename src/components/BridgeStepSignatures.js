@@ -33,6 +33,8 @@ import { chains } from '../configs/chains';
 import { abiBridge } from '../configs/abiBridge';
 import { config } from './WalletProvider';
 
+import BridgeStepProceseMessage from './BridgeStepProcessMessage';
+
 function BridgeStepSignatures(props) {
   const {
     message,
@@ -51,16 +53,17 @@ function BridgeStepSignatures(props) {
   });
   
   const [epoch, setEpoch] = useState(null);
+  const [freeze, setFreee] = useState(false);
   
   useEffect(function() {
-    if(!latestBlock)
+    if(!latestBlock || freeze)
       return;
     
     const newEpoch = new BigNumber(latestBlock.timestamp).div(60).div(20).dp(0, BigNumber.ROUND_DOWN);
     
     if(!newEpoch.eq(epoch))
       setEpoch(newEpoch);
-  }, [latestBlock]);
+  }, [latestBlock, halted]);
 
   const [relayers, setRelayers] = useState([]);
   
@@ -302,9 +305,12 @@ function BridgeStepSignatures(props) {
           )}
         </MDBBtn>
       ) : (
-        <MDBBtn block>
-          Process message
-        </MDBBtn>
+        <BridgeStepProcessMessage
+         signatures={signatures}
+         epoch={epoch}
+         setFreeze={setFreeze}
+         {...props}
+        />
       )}
     </>
   );

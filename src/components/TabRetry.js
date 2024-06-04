@@ -30,7 +30,7 @@ function TabRetry() {
           Source chain:
         </MDBCol>
         <MDBCol>
-          <SelectChain options={chains} value={srcChain} onChange={setSrcChain} />
+          <SelectChain options={chains} value={srcChain} onChange={setSrcChain} disabled={!!message} />
         </MDBCol>
       </MDBRow>
       

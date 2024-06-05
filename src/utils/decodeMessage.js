@@ -41,8 +41,7 @@ function decodeMessage(log) {
     dstChainId: parseInt(decodedMessage[1]),
     asset: asset,
     dstAddress: decodedMessage[5],
-    value: new BigNumber(decodedMessage[6]),
-    txid: log.transactionHash
+    value: new BigNumber(decodedMessage[6])
   };
 }
 

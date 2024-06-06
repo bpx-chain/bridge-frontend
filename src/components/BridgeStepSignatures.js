@@ -97,7 +97,7 @@ function BridgeStepSignatures(props) {
   
   const [allSignatures, setAllSignatures] = useState([]);
   
-  function onMsg(rawMsg) {
+  async function onMsg(rawMsg) {
     if(!rawMsg.payload)
       return;
   
@@ -131,7 +131,7 @@ function BridgeStepSignatures(props) {
     
     let recoveredAddr;
     try {
-      recoveredAddr = recoverMessageAddress({
+      recoveredAddr = await recoverMessageAddress({
         message: { raw: epochHash },
         signature
       });
@@ -140,7 +140,7 @@ function BridgeStepSignatures(props) {
       return;
     }
     
-    let tmpAllSignatures = signatures;
+    let tmpAllSignatures = allSignatures;
     tmpAllSignatures.push({
       epoch: msg.epoch,
       relayer: recoveredAddr,
@@ -152,12 +152,10 @@ function BridgeStepSignatures(props) {
   const { node: synapse } = useWaku();
   
   useEffect(function() {
-    console.log(synapse);
-    
     const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
     const decoder = createDecoder(contentTopic, pubsubTopic);
     
-    async function startFilter() {  
+    async function startFilter() {
       try {
         await synapse.filter.subscribe(
           [decoder],
@@ -255,7 +253,7 @@ function BridgeStepSignatures(props) {
                     {signatures[index] === null ? (
                       <MDBIcon icon='circle-notch' spin className='ms-3' />
                     ) : (
-                      <MDBIcon icon='check' spin color='success' className='ms-3' />
+                      <MDBIcon icon='circle-check' color='success' className='ms-3' />
                     )}
                   </MDBCol>
                   <MDBCol className='my-auto py-1'>

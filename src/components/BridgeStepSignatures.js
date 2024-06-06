@@ -33,7 +33,7 @@ import { chains } from '../configs/chains';
 import { abiBridge } from '../configs/abiBridge';
 import { config } from './WalletProvider';
 
-import BridgeStepProceseMessage from './BridgeStepProcessMessage';
+import BridgeStepProcessMessage from './BridgeStepProcessMessage';
 
 function BridgeStepSignatures(props) {
   const {
@@ -53,7 +53,7 @@ function BridgeStepSignatures(props) {
   });
   
   const [epoch, setEpoch] = useState(null);
-  const [freeze, setFreee] = useState(false);
+  const [freeze, setFreeze] = useState(false);
   
   useEffect(function() {
     if(!latestBlock || freeze)
@@ -63,7 +63,7 @@ function BridgeStepSignatures(props) {
     
     if(!newEpoch.eq(epoch))
       setEpoch(newEpoch);
-  }, [latestBlock, halted]);
+  }, [latestBlock, freeze]);
 
   const [relayers, setRelayers] = useState([]);
   

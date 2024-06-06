@@ -40,22 +40,21 @@ function BridgeStepProcessMessage(props) {
   } = useWaitForTransactionReceipt({ hash: pmTxid });
   
   useEffect(function() {
-    if(transferTxStatus != 'success')
+    if(pmTxStatus != 'success')
       return;
     
     //
   }, [pmTxStatus]);
   
   function pm() {
-    transferWriteContract({
+    pmWriteContract({
       address: chains[chainId].contract,
       abi: abiBridge,
-      functionName: 'transferERC20',
+      functionName: 'messageProcess',
       args: [
-        assets[asset].contracts[chainId],
-        dstChain,
-        address,
-        amount.toFixed(0)
+        message.messageBody,
+        signatures,
+        epoch
       ]
     });
   };

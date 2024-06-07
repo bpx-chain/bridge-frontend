@@ -11,10 +11,12 @@ import SelectChain from './SelectChain';
 import ConnectWallet from './ConnectWallet';
 import RetryStepScan from './RetryStepScan';
 import BridgeStepSignatures from './BridgeStepSignatures';
+import BridgeStepSuccess from './BridgeStepSuccess';
 
 function TabRetry() {
   const [srcChain, setSrcChain] = useState(null);
   const [message, setMessage] = useState(null);
+  const [success, setSuccess] = useState(false);
   
   const { chainId } = useAccount();
   
@@ -44,9 +46,13 @@ function TabRetry() {
               <small>{message.messageHash}</small>
             </MDBCol>
           </MDBRow>
-          <ConnectWallet requiredChain={message.dstChainId}>
-            <BridgeStepSignatures message={message} requestRetry={true} />
-          </ConnectWallet>
+          {success ? (
+            <BridgeStepSuccess />
+          ) : (
+            <ConnectWallet requiredChain={message.dstChainId}>
+              <BridgeStepSignatures message={message} requestRetry={true} setSuccess={setSuccess} />
+            </ConnectWallet>
+          )}
         </>
       ) : srcChain && (
         <ConnectWallet requiredChain={srcChain}>

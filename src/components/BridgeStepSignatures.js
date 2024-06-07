@@ -45,12 +45,17 @@ function BridgeStepSignatures(props) {
     address,
     chainId
   } = useAccount();
+  
+  // BLOCK
+  
   const {
     data: latestBlock
   } = useBlock({
     blockTag: 'latest',
     watch: true
   });
+  
+  // EPOCH <- BLOCK
   
   const [epoch, setEpoch] = useState(null);
   const [freeze, setFreeze] = useState(false);
@@ -64,12 +69,16 @@ function BridgeStepSignatures(props) {
     if(!newEpoch.eq(epoch))
       setEpoch(newEpoch);
   }, [latestBlock, freeze]);
+  
+  // RELAYERS <- EPOCH
 
   const [relayers, setRelayers] = useState([]);
   
   useEffect(function() {
     if(!epoch)
       return;
+    
+    setRelayers([]);
     
     async function getRelayersOnEpochChange() {
       try {
@@ -88,12 +97,13 @@ function BridgeStepSignatures(props) {
       }
       catch(e) {
         setTimeout(getRelayersOnEpochChange, 3000);
-        setRelayers([]);
       }
     };
     
     getRelayersOnEpochChange();
   }, [epoch]);
+  
+  // ALL SIGNATURES <- MESSAGE
   
   const [allSignatures, setAllSignatures] = useState([]);
   
@@ -126,7 +136,7 @@ function BridgeStepSignatures(props) {
     const signature = { r: msg.r, s: msg.s, v: msg.v };
     const epochHash = keccak256(encodePacked(
       ['bytes32', 'uint64'],
-      [msg.messageHash, epoch]
+      [msg.messageHash, msg.epoch]
     ));
     
     let recoveredAddr;
@@ -155,33 +165,37 @@ function BridgeStepSignatures(props) {
     const contentTopic = '/bridge/1/client-' + address.toLowerCase() + '/json';
     const decoder = createDecoder(contentTopic, pubsubTopic);
     
-    async function startFilter() {
-      try {
-        await synapse.filter.subscribe(
-          [decoder],
-          onMsg
-        );
+    async function startFilterAndStore() {
+      while(true) {
+        try {
+          await synapse.filter.subscribe(
+            [decoder],
+            onMsg
+          );
+          break;
+        }
+        catch(e) {
+          await new Promise(r => setTimeout(r, 3000));
+        }
       }
-      catch(e) {
-        setTimeout(startFilter, 3000);
+      while(true) {
+        try {
+          await synapse.store.queryWithOrderedCallback(
+            [decoder],
+            onMsg
+          );
+          break;
+        }
+        catch(e) {
+          await new Promise(r => setTimeout(r, 3000));
+        }
       }
     };
     
-    async function startStore() {
-      try {
-        await(synapse.store.queryWithOrderedCallback(
-          [decoder],
-          onMsg
-        ));
-      }
-      catch(e) {
-        setTimeout(startStore, 3000);
-      }
-    };
-    
-    startFilter();
-    startStore();
+    startFilterAndStore();
   }, [synapse]);
+  
+  // SIGNATURES <- RELAYERS + ALL SIGNATURES
   
   const [signatures, setSignatures] = useState([]);
   
@@ -201,6 +215,8 @@ function BridgeStepSignatures(props) {
     
     setSignatures(tmpSignatures);
   }, [relayers, allSignatures]);
+  
+  // RR PROGRESS <- RELAYERS
   
   const [rrProgress, setRrProgress] = useState(null);
   

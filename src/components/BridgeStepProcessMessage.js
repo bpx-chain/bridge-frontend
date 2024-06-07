@@ -19,7 +19,8 @@ function BridgeStepProcessMessage(props) {
     signatures,
     message,
     epoch,
-    setFreeze
+    setFreeze,
+    setSuccess
   } = props;
   
   const {
@@ -43,7 +44,7 @@ function BridgeStepProcessMessage(props) {
     if(pmTxStatus != 'success')
       return;
     
-    //
+    setSuccess(true);
   }, [pmTxStatus]);
   
   function pm() {

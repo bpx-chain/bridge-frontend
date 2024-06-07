@@ -8,9 +8,15 @@ import {
   useWriteContract,
   useWaitForTransactionReceipt
 } from 'wagmi';
+import {
+  estimateFeesPerGas,
+  estimateGas
+} from '@wagmi/core';
+import BigNumber from 'bignumber.js';
 
 import { chains } from '../configs/chains';
 import { abiBridge } from '../configs/abiBridge';
+import { config } from './WalletProvider';
 
 import MsgBox from './MsgBox';
 
@@ -47,7 +53,25 @@ function BridgeStepProcessMessage(props) {
     setSuccess(true);
   }, [pmTxStatus]);
   
-  function pm() {
+  async function pm() {
+    const fees = await estimateFeesPerGas(config);
+    
+    const value = new BigNumber(fees.maxFeePerGas).times(21000);
+    
+    const estimate = await estimateGas(config, {
+      address: chains[chainId].contract,
+      abi: abiBridge,
+      functionName: 'messageProcess',
+      args: [
+        message.messageBody,
+        signatures,
+        epoch
+      ],
+      value,
+      maxFeePerGas: fees.maxFeePerGas,
+      maxPriorityFeePerGas: fees.maxPriorityFeePerGas
+    });
+    
     pmWriteContract({
       address: chains[chainId].contract,
       abi: abiBridge,
@@ -56,7 +80,10 @@ function BridgeStepProcessMessage(props) {
         message.messageBody,
         signatures,
         epoch
-      ]
+      ],
+      value,
+      maxFeePerGas: fees.maxFeePerGas,
+      maxPriorityFeePerGas: fees.maxPriorityFeePerGas
     });
   };
   

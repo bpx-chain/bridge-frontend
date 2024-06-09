@@ -150,13 +150,14 @@ function BridgeStepSignatures(props) {
       return;
     }
     
-    let tmpAllSignatures = allSignatures;
-    tmpAllSignatures.push({
-      epoch: msg.epoch,
-      relayer: recoveredAddr,
-      signature: signature
-    });
-    setAllSignatures(tmpAllSignatures);
+    setAllSignatures(prevState => [
+      {
+        epoch: msg.epoch,
+        relayer: recoveredAddr,
+        signature: signature
+      },
+      ...prevState
+    ]);
   };
   
   const { node: synapse } = useWaku();
@@ -175,6 +176,7 @@ function BridgeStepSignatures(props) {
           break;
         }
         catch(e) {
+          console.log(e);
           await new Promise(r => setTimeout(r, 3000));
         }
       }

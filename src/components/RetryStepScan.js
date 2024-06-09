@@ -48,8 +48,6 @@ function RetryStepScan(props) {
       let endBlock = latestBlock;
       let startBlock = latestBlock - 999n;
       
-      let tmpAllLogs = [];
-      
       do {
         try {
           const logs = await getLogs(publicClient, {
@@ -63,9 +61,8 @@ function RetryStepScan(props) {
           });
           
           if(logs.length)
-            tmpAllLogs = tmpAllLogs.concat(logs);
+            setAllLogs(prevState => prevState.concat(logs));
           
-          setAllLogs(tmpAllLogs);
           setProgress(Math.floor(
             parseInt(latestBlock - startBlock) / chains[chainId].retryBlocks * 100
           ));

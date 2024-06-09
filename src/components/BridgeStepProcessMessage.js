@@ -12,6 +12,7 @@ import {
   estimateFeesPerGas,
   estimateGas
 } from '@wagmi/core';
+import { encodeFunctionData } from 'viem';
 import BigNumber from 'bignumber.js';
 
 import { chains } from '../configs/chains';
@@ -59,17 +60,19 @@ function BridgeStepProcessMessage(props) {
     const value = new BigNumber(fees.maxFeePerGas).times(21000);
     
     const estimate = await estimateGas(config, {
-      address: chains[chainId].contract,
-      abi: abiBridge,
-      functionName: 'messageProcess',
-      args: [
-        message.messageBody,
-        signatures,
-        epoch
-      ],
-      value,
+      data: encodeFunctionData({
+        abi: abiBridge,
+        functionName: 'messageProcess',
+        args: [
+          message.messageBody,
+          signatures,
+          epoch
+        ]
+      }),
       maxFeePerGas: fees.maxFeePerGas,
-      maxPriorityFeePerGas: fees.maxPriorityFeePerGas
+      maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+      to: chains[chainId].contract,
+      value
     });
     
     pmWriteContract({
@@ -83,7 +86,8 @@ function BridgeStepProcessMessage(props) {
       ],
       value,
       maxFeePerGas: fees.maxFeePerGas,
-      maxPriorityFeePerGas: fees.maxPriorityFeePerGas
+      maxPriorityFeePerGas: fees.maxPriorityFeePerGas,
+      gas: estimate
     });
   };
   

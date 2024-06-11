@@ -229,7 +229,8 @@ function BridgeStepSignatures(props) {
     setRrProgress(0);
     
     const payload = utf8ToBytes(JSON.stringify({
-      messageHash: message.messageHash
+      messageHash: message.messageHash,
+      epoch
     }));
     
     async function sendRetryRequests(index) {

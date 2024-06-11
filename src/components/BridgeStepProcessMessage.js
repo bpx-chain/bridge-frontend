@@ -48,8 +48,10 @@ function BridgeStepProcessMessage(props) {
   } = useWaitForTransactionReceipt({ hash: pmTxid });
   
   useEffect(function() {
-    handleFreeze(pmTxStatus != 'idle');
-    
+    handleFreeze(pmStatus != 'idle');
+  }, [pmStatus]);
+  
+  useEffect(function() {
     if(pmTxStatus != 'success')
       return;
     

@@ -7,7 +7,7 @@ import {
 function BridgeStepSuccess() {
   return (
     <MDBBtn color='success' block disabled>
-      <MDBIcon icon='circle-check' spin className='me-2' />
+      <MDBIcon icon='circle-check' className='me-2' />
       Bridge transaction completed
     </MDBBtn>
   );

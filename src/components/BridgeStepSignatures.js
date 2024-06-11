@@ -70,6 +70,11 @@ function BridgeStepSignatures(props) {
       setEpoch(newEpoch);
   }, [latestBlock, freeze]);
   
+  function handleFreeze(newValue) {
+    if(newValue != freeze)
+      setFreeze(newValue);
+  };
+  
   // RELAYERS <- EPOCH
 
   const [relayers, setRelayers] = useState([]);
@@ -230,7 +235,7 @@ function BridgeStepSignatures(props) {
     
     const payload = utf8ToBytes(JSON.stringify({
       messageHash: message.messageHash,
-      epoch
+      epoch: epoch.toNumber()
     }));
     
     async function sendRetryRequests(index) {
@@ -325,7 +330,7 @@ function BridgeStepSignatures(props) {
         <BridgeStepProcessMessage
          signatures={signatures}
          epoch={epoch}
-         setFreeze={setFreeze}
+         handleFreeze={handleFreeze}
          {...props}
         />
       )}

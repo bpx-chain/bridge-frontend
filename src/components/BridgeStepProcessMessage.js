@@ -26,7 +26,7 @@ function BridgeStepProcessMessage(props) {
     signatures,
     message,
     epoch,
-    setFreeze,
+    handleFreeze,
     setSuccess
   } = props;
   
@@ -48,6 +48,8 @@ function BridgeStepProcessMessage(props) {
   } = useWaitForTransactionReceipt({ hash: pmTxid });
   
   useEffect(function() {
+    handleFreeze(pmTxStatus != 'idle');
+    
     if(pmTxStatus != 'success')
       return;
     
@@ -91,14 +93,9 @@ function BridgeStepProcessMessage(props) {
     });
   };
   
-  function pmRetry() {
-    pmReset();
-    pm();
-  };
-  
   if(pmStatus == 'success' && pmTxStatus == 'error')
     return (
-      <MDBBtn block onClick={pmRetry}>
+      <MDBBtn block onClick={pmReset}>
         Process message transaction reverted. Retry?
       </MDBBtn>
     );
@@ -115,7 +112,7 @@ function BridgeStepProcessMessage(props) {
         <MsgBox title='Error'>
           {pmError.shortMessage}
         </MsgBox>
-        <MDBBtn block onClick={pmRetry}>
+        <MDBBtn block onClick={pmReset}>
           Process message transaction failed. Retry?
         </MDBBtn>
       </>

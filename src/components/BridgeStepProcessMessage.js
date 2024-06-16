@@ -21,6 +21,8 @@ import { config } from './WalletProvider';
 
 import MsgBox from './MsgBox';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function BridgeStepProcessMessage(props) {
   const {
     signatures,

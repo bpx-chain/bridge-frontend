@@ -16,6 +16,8 @@ import { chains } from '../configs/chains';
 
 import MsgBox from './MsgBox';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function BridgeStepAllowance(props) {
   const {
     asset,

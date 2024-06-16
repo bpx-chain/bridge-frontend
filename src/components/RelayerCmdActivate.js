@@ -13,6 +13,8 @@ import { abiBridge } from '../configs/abiBridge';
 
 import MsgBox from './MsgBox';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function RelayerCmdActivate(props) {
   const { address, chainId } = useAccount();
   const { oppChain } = props;

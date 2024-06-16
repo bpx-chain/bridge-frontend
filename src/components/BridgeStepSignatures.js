@@ -35,6 +35,8 @@ import { config } from './WalletProvider';
 
 import BridgeStepProcessMessage from './BridgeStepProcessMessage';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function BridgeStepSignatures(props) {
   const {
     message,

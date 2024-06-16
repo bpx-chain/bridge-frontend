@@ -7,6 +7,8 @@ import { assets } from '../configs/assets';
 
 import BridgeStepMessage from './BridgeStepMessage';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function BridgeStepValidate(props) {
   const {
     asset,

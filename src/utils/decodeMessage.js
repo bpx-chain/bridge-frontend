@@ -8,6 +8,8 @@ import BigNumber from 'bignumber.js';
 import { assets } from '../configs/assets';
 import { homeChainId } from '../configs/homeChainId';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function decodeMessage(log) {
   const decodedMessage = decodeAbiParameters(
     [

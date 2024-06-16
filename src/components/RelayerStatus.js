@@ -9,6 +9,8 @@ import BigNumber from 'bignumber.js';
 
 import { chains } from '../configs/chains';
 
+BigNumber.set({EXPONENTIAL_AT: 25});
+
 function RelayerStatus(props) {
   const { address, chainId } = useAccount();
   const {
